@@ -49,7 +49,8 @@ public class TCONST {
     public static final String DEBUG_LAYOUT     = "DEBUG_LAYOUT";
 
 
-    // RoboTutor Version spec Index meaning 0.1.2.3
+
+    // Version spec Index meaning 0.1.2.3
     // Given 4.23.9.8
     // Major release 4 | Feature release 23 | Fix release 9 | compatible Asset Version 8
     //
@@ -227,8 +228,11 @@ public class TCONST {
     public static final String PROGRESS_MSG1              = "PROGRESS_MSG1";
     public static final String PROGRESS_MSG2              = "PROGRESS_MSG2";
     public static final String ASSET_UPDATE_MSG           = "Installing Assets: ";
-    public static final String INT_FIELD                  = "INT_FIELD";
     public static final String PLEASE_WAIT                = " - Please Wait.";
+    public static final String LAUNCH_TUTOR               = "LAUNCH_TUTOR";
+
+    public static final String INT_FIELD                  = "INT_FIELD";
+    public static final String NAME_FIELD                 = "NAME_FIELD";
 
     public static final String TUTOR_NATIVE               = "native";
     public static final String TRACK_COMPLETE             = "TRACK_COMPLETE";

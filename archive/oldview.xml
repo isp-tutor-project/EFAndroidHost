@@ -1,0 +1,165 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<FrameLayout
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:id="@+id/container"
+    xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:gravity="top|right">
+
+        <TextView
+            android:id="@+id/SownerStatus"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+
+            android:layout_marginRight="3dp"
+            android:layout_marginTop="3dp"
+            android:text="testtext"
+            android:textSize="15sp"
+            android:textColor="#222" />
+
+        <Button
+            android:id="@+id/SsettingsButton"
+
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+
+            android:layout_marginRight="3dp"
+            android:layout_marginTop="33dp"
+            android:text="Launch Settings" />
+
+        <Button
+            android:id="@+id/SEFhomeButton"
+
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+
+            android:layout_marginRight="3dp"
+            android:layout_marginTop="33dp"
+            android:text="EdForge Home" />
+
+        <Button
+            android:id="@+id/SASUShomeButton"
+
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+
+            android:layout_marginRight="3dp"
+            android:layout_marginTop="33dp"
+            android:text="ASUS Home" />
+
+
+        <Button
+            android:id="@+id/SbootButton"
+
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+
+            android:layout_marginRight="3dp"
+            android:layout_marginTop="63dp"
+            android:text="Reboot Device" />
+
+        <Button
+            android:id="@+id/SwipeButton"
+
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+
+            android:layout_marginRight="3dp"
+            android:layout_marginTop="63dp"
+            android:text="Wipe Device" />
+
+    </LinearLayout>
+
+    <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:gravity="center_vertical">
+
+        <TextView
+            android:id="@+id/Stitle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_margin="20dp"
+            android:textSize="50sp"
+            android:textStyle="bold"
+            android:text="EdForge System Manager" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:id="@+id/SstatusContainer"
+            android:orientation="horizontal"
+            android:paddingLeft="40dp">
+
+
+            <TextView
+                android:id="@+id/SprogressIndex"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_margin="20dp"
+                android:textSize="60sp"
+                android:textStyle="bold"
+                android:text="0" />
+
+            <TextView
+                android:id="@+id/SprogressAction"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:layout_margin="20dp"
+                android:paddingLeft="20dp"
+                android:paddingRight="20dp"
+                android:textSize="20sp"
+                android:textStyle="bold"
+                android:text="DOWNLOADING" />
+
+            <ProgressBar
+                android:id="@+id/SprogressBar"
+                style="@android:style/Widget.ProgressBar.Horizontal"
+                android:layout_width="500dp"
+                android:layout_height="40dp"
+                android:layout_margin="20dp"
+                android:layout_gravity="center"
+                android:indeterminate="false"
+                android:visibility="visible"/>
+
+            <TextView
+                android:id="@+id/SprogressStatus"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:layout_margin="20dp"
+                android:textSize="20sp"
+                android:text="Load Location: " />
+
+        </LinearLayout>
+
+            <ListView
+                android:id="@+id/SresultList"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:scrollbars="vertical">
+
+            </ListView>
+
+        <TextView
+            android:id="@+id/SerrorStatment"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            android:layout_margin="10dp"
+            android:textSize="30sp"
+            android:textColor="#ff0000"
+            android:visibility="invisible"
+            android:text="ERROR - CLICK HERE TO FACTORY RESET and RETRY" />
+
+    </LinearLayout>
+
+</FrameLayout>

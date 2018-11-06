@@ -14,11 +14,15 @@ package org.edforge.androidhost;
 
 import android.app.Activity;
 import android.app.ActivityManager;
+import android.content.BroadcastReceiver;
 import android.content.Context;
+import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.content.res.AssetManager;
 import android.os.AsyncTask;
 import android.os.Environment;
+import android.support.v4.content.LocalBroadcastManager;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
@@ -26,6 +30,7 @@ import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.WindowManager;
+import android.widget.FrameLayout;
 
 import org.edforge.engine.CTutorAssetManager;
 import org.edforge.engine.ITutorManager;
@@ -44,17 +49,29 @@ import java.util.ArrayList;
 
 import static org.edforge.androidhost.TCONST.GRAPH_MSG;
 import static org.edforge.androidhost.TCONST.EDFORGE_ASSET_PATTERN;
+import static org.edforge.androidhost.TCONST.LAUNCH_TUTOR;
+
+// Push content via ADB
+// E:\Projects\EdForge\PRODUCTION\EdForge> adb push ./ /sdcard/EdForge
 
 public class AndroidHost extends AppCompatActivity {
 
-    static public ITutorManager masterContainer;
-    static public ILogManager   logManager;
-    static CTutorAssetManager   tutorAssetManager;
+    static public MasterContainer masterContainer;
+    static public ILogManager     logManager;
+    static CTutorAssetManager     tutorAssetManager;
 
     static public String        VERSION_AH;
     static public ArrayList     VERSION_SPEC;
 
     static public CDisplayMetrics displayMetrics;
+
+    private LocalBroadcastManager   bManager;
+    private hostReceiver            bReceiver;
+
+    private LayoutInflater          mInflater;
+    private HostWebView mWebView;
+    private View                    mCurrView = null;
+
 
     static public String        APP_PRIVATE_FILES;
     static public String        LOG_ID = "STARTUP";
@@ -79,7 +96,7 @@ public class AndroidHost extends AppCompatActivity {
 
     private final  String  TAG = "CAndroidHost";
 
-
+    private final String[] tutors = {"/mats.html","/dr.html","/rq.html","/intro.html","/ted.html"};
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -88,19 +105,23 @@ public class AndroidHost extends AppCompatActivity {
         //
         super.onCreate(null);
 
+        FrameLayout.LayoutParams params;
 
-        // Catch all errors and cause a clean exit -
-        // TODO: this doesn't work as expected
+        // Get the primary container for tutors
         //
-//        Thread.setDefaultUncaughtExceptionHandler(new Thread.UncaughtExceptionHandler() {
-//
-//            @Override
-//            public void uncaughtException(Thread paramThread, Throwable paramThrowable) {
-//
-//                System.exit(2);
-//            }
-//        });
+        setContentView(R.layout.activity_host);
+        masterContainer = (MasterContainer)findViewById(R.id.master_container);
 
+        // Capture the local broadcast manager
+        bManager = LocalBroadcastManager.getInstance(this);
+
+        IntentFilter filter = new IntentFilter(LAUNCH_TUTOR);
+
+        bReceiver = new hostReceiver();
+        bManager.registerReceiver(bReceiver, filter);
+
+        //TODO: fix up preferences initialization
+        onStartTutor();
 
         PACKAGE_NAME = getApplicationContext().getPackageName();
         ACTIVITY     = this;
@@ -118,19 +139,13 @@ public class AndroidHost extends AppCompatActivity {
 
         Log.v(TAG, "External_Download:" + DOWNLOAD_PATH);
 
-        // Get the primary container for tutors
-        //
-        setContentView(R.layout.activity_host);
-//        masterContainer = (ITutorManager)findViewById(R.id.master_container);
-
         // Set fullscreen and then get the screen metrics
         //
-        setFullScreen();
-
         // get the multiplier used for drawables at the current screen density and calc the
         // correction rescale factor for design scale
         // This initializes the static object
         //
+        setFullScreen();
         displayMetrics = CDisplayMetrics.getInstance(this);
 
         APP_PRIVATE_FILES = getApplicationContext().getExternalFilesDir("").getPath();
@@ -146,17 +161,15 @@ public class AndroidHost extends AppCompatActivity {
 //        mMediaController.setAssetManager(mAssetManager);
 
         LayoutInflater inflater = (LayoutInflater)getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+        mInflater = (LayoutInflater)getSystemService(Context.LAYOUT_INFLATER_SERVICE);
 
-        // Create the start dialog
-        // TODO: This is a temporary log update mechanism - see below
-        //
-//        startView = (CStartView)inflater.inflate(R.layout.start_layout, null );
-//        startView.setCallback(this);
+        mWebView = (HostWebView) mInflater.inflate(R.layout.web_view, null );
+        params = new FrameLayout.LayoutParams(FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.MATCH_PARENT);
+        mWebView.setLayoutParams(params);
 
-        // Show the Indeterminate loader
-        //
-//        progressView = (CLoaderView)inflater.inflate(R.layout.progress_layout, null );
-//        masterContainer.addAndShow(progressView);
+        switchView(mWebView);
+
+        broadcast(LAUNCH_TUTOR, tutors[0]);
     }
 
 
@@ -171,20 +184,6 @@ public class AndroidHost extends AppCompatActivity {
         logManager.postEvent_V(TAG, "EdForge:onRestoreInstanceState");
     }
 
-
-    public void reBoot() {
-
-        try {
-
-            Process proc = Runtime.getRuntime().exec(new String[] { "su", "-c", "reboot" });
-            proc.waitFor();
-
-        } catch (Exception ex) {
-
-            logManager.postEvent_V(TAG, "EdForge:Could not reboot");
-        }
-
-    }
 
     private void setFullScreen() {
 
@@ -362,7 +361,7 @@ public class AndroidHost extends AppCompatActivity {
     //
     public void onStartTutor() {
 
-        logManager.postEvent_V(TAG, "LOG_GUID:" + LOG_ID );
+//        logManager.postEvent_V(TAG, "LOG_GUID:" + LOG_ID );
         LOG_ID = CPreferenceCache.initLogPreference(this);
 
         setFullScreen();
@@ -512,5 +511,35 @@ public class AndroidHost extends AppCompatActivity {
     }
 
 
+    public void switchView(View target) {
+
+        if(mCurrView != null)
+            masterContainer.removeView(mCurrView);
+
+        masterContainer.addAndShow(target);
+        mCurrView = target;
+    }
+
+
+    public void broadcast(String Action, String Msg) {
+
+        Intent msg = new Intent(Action);
+        msg.putExtra(TCONST.NAME_FIELD, Msg);
+
+        bManager.sendBroadcast(msg);
+    }
+
+
+    class hostReceiver extends BroadcastReceiver {
+
+        public void onReceive (Context context, Intent intent) {
+
+            Log.d("homeReceiver", "Broadcast recieved: ");
+
+            switch(intent.getAction()) {
+
+            }
+        }
+    }
 
 }
