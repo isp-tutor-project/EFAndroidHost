@@ -48,32 +48,44 @@ public class JSON_Util {
     final private String TAG = "JSON_Util";
 
 
-    public JSON_Util() throws IOException {
+    public JSON_Util()  {
 
         outString = new StringWriter();
         writer    = new JsonWriter(outString);
 
-        writer.beginObject();
+        try {
+            writer.beginObject();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
 
-    public JSON_Util(ISerializableObject obj) throws IOException {
+    public JSON_Util(ISerializableObject obj)  {
 
         outString = new StringWriter();
         writer    = new JsonWriter(outString);
 
-        writer.beginObject();
+        try {
+            writer.beginObject();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
 
         obj.saveJSON(this);
     }
 
 
-    public JSON_Util(ISerializableObject obj, String file_Path, boolean append_file) throws IOException {
+    public void write(ISerializableObject obj, String file_Path, boolean append_file)  {
 
         outString = new StringWriter();
         writer    = new JsonWriter(outString);
 
-        writer.beginObject();
+        try {
+            writer.beginObject();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
 
         obj.saveJSON(this);
 

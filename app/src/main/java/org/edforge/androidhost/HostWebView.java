@@ -16,6 +16,7 @@ import android.widget.FrameLayout;
 
 import org.edforge.engine.CNativeAudio;
 import org.edforge.engine.TTSsynthesizer;
+import org.edforge.engine.UserManager;
 
 import java.io.File;
 
@@ -30,6 +31,7 @@ public class HostWebView extends FrameLayout {
     private Context mContext;
     private WebView webView;
 
+    private UserManager             mUserManager;
     private CNativeAudio            mNativeAudio;
     private TTSsynthesizer          mNativeSpeech;
 
@@ -64,6 +66,7 @@ public class HostWebView extends FrameLayout {
     public void init(Context context, AttributeSet attrs) {
 
         mContext = context;
+        mUserManager = UserManager.getInstance();
 
         folder = Environment.getExternalStorageDirectory();
         sdcard = folder.getAbsolutePath();
@@ -120,7 +123,9 @@ public class HostWebView extends FrameLayout {
 //        mNativeSpeech = new TTSsynthesizer(AndroidHost.ACTIVITY, webView);
 //        webView.addJavascriptInterface(mNativeSpeech, "EFnativeSpeech");
 
-
+        // Create a javascript interface for native audio
+        webView.addJavascriptInterface(mUserManager, "EFnativeUserMgr");
+//        webView.addJavascriptInterface(mLogManager, "EFnativeLogMgr");
     }
 
 
@@ -140,14 +145,12 @@ public class HostWebView extends FrameLayout {
             switch(intent.getAction()) {
 
                 case LAUNCH_TUTOR:
-                    String tutorName = intent.getStringExtra(TCONST.NAME_FIELD);
+                    String tutorName = mUserManager.getTutorFileName();
 
                     Log.d(TAG, "file:///" + basefolder + tutorName);
                     //load file
                     webView.loadUrl("file:///" + basefolder + tutorName);
                     break;
-
-
             }
         }
     }

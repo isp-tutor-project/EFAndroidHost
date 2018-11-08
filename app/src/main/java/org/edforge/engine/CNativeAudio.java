@@ -179,7 +179,7 @@ public class CNativeAudio {
     @android.webkit.JavascriptInterface
     public void clearAllSounds() {
 
-        Log.i(TAG, "JS Releasing Sound Sources: ");
+        Log.i(TAG, "LJSCR Releasing Sound Sources: ");
 
         Iterator entries = cachedSource.entrySet().iterator();
 
@@ -197,7 +197,7 @@ public class CNativeAudio {
     @android.webkit.JavascriptInterface
     public void registerSounds(String soundPath, String fileId, String basePath) {
 
-        Log.i(TAG, "JS Register Sound Source: " + fileId);
+        Log.i(TAG, "LJSCR Register Sound Source: " + fileId);
 
         try {
 
@@ -238,7 +238,7 @@ public class CNativeAudio {
     @android.webkit.JavascriptInterface
     public void play(String soundsource) {
 
-        Log.i(TAG, "JS Play Sound Source: " + soundsource);
+        Log.i(TAG, "LJSCR Play Sound Source: " + soundsource);
 
         try {
             mPlayer = cachedSource.get(soundsource);

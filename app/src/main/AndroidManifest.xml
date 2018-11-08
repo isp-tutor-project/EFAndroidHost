@@ -14,12 +14,22 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
-        <activity android:name=".AndroidHost">
+
+        <activity
+            android:name=".AndroidHost"
+            android:screenOrientation="sensorLandscape"
+            android:configChanges="orientation|screenSize"
+            android:label="@string/app_name"
+            android:launchMode="singleTask"
+            android:excludeFromRecents="true"
+            android:lockTaskMode="if_whitelisted">
+
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
-                <action android:name="org.edforge.EF_ANDROID_HOST" />
+                <action android:name="org.edforge.androidhost.EF_ANDROID_HOST" />
 
                 <category android:name="android.intent.category.LAUNCHER" />
+                <category android:name="android.intent.category.DEFAULT" />
             </intent-filter>
         </activity>
     </application>

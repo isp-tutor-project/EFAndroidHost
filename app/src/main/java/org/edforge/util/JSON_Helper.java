@@ -155,7 +155,7 @@ public class JSON_Helper {
      * is not used to generate the root object from the spec.
      *
      * Scope may be null if you are not rebuilding a scriptable object - i.e. you can use this
-     * just to reconstruct an ILoadableObject with no other intent
+     * just to reconstruct an ISerializableObject with no other intent
      *
      * @param jsonObj
      * @param self
@@ -375,7 +375,7 @@ public class JSON_Helper {
                                         eObj = elemClass.newInstance();
 
                                         // First load the shared instance info in the map
-                                        ((ILoadableObject) eObj).loadJSON(mapElem, scope);
+                                        ((ISerializableObject) eObj).loadJSON(mapElem, scope);
                                     } else {
                                         try {
                                             // If not using a global type then determine the per instance type
@@ -397,7 +397,7 @@ public class JSON_Helper {
                                     // link.  There may or may not be any data here. But note that
                                     // it will override any info in the map instance data.
 
-                                    ((ILoadableObject) eObj).loadJSON(elem, scope);
+                                    ((ISerializableObject) eObj).loadJSON(elem, scope);
 
                                     // Initialize graph mode types - define novar on data that shouldn't have a scope
                                     // variable name - e.g. embedded audio in CAsk_data
@@ -454,7 +454,7 @@ public class JSON_Helper {
 
                                 nJsonObj = jsonObj.getJSONObject(fieldName);
 
-                                ((ILoadableObject)field_obj).loadJSON(nJsonObj, scope);
+                                ((ISerializableObject)field_obj).loadJSON(nJsonObj, scope);
 
                                 field.set(self, field_obj);
 
@@ -539,7 +539,7 @@ public class JSON_Helper {
                             eObj = elemClass.newInstance();
                         }
 
-                        ((ILoadableObject) eObj).loadJSON(nJsonObj, scope);
+                        ((ISerializableObject) eObj).loadJSON(nJsonObj, scope);
                     }
 
                     Array.set(field_Array, i, eObj);

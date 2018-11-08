@@ -31,11 +31,12 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.view.WindowManager;
 import android.widget.FrameLayout;
+import android.widget.Toast;
 
 import org.edforge.engine.CTutorAssetManager;
-import org.edforge.engine.ITutorManager;
+import org.edforge.engine.UserManager;
 import org.edforge.net.CErrorManager;
-import org.edforge.net.CLogManager;
+import org.edforge.engine.CLogManager;
 import org.edforge.net.CPreferenceCache;
 import org.edforge.net.ILogManager;
 import org.edforge.util.CAssetObject;
@@ -47,18 +48,21 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 
+import static org.edforge.androidhost.TCONST.EFHOST_LAUNCH_INTENT;
 import static org.edforge.androidhost.TCONST.GRAPH_MSG;
 import static org.edforge.androidhost.TCONST.EDFORGE_ASSET_PATTERN;
 import static org.edforge.androidhost.TCONST.LAUNCH_TUTOR;
+import static org.edforge.androidhost.TCONST.TUTOR_COMPLETE;
 
 // Push content via ADB
 // E:\Projects\EdForge\PRODUCTION\EdForge> adb push ./ /sdcard/EdForge
 
 public class AndroidHost extends AppCompatActivity {
 
-    static public MasterContainer masterContainer;
-    static public ILogManager     logManager;
-    static CTutorAssetManager     tutorAssetManager;
+    static public MasterContainer       masterContainer;
+    static public ILogManager           logManager;
+    static public CTutorAssetManager    tutorAssetManager;
+    static private UserManager          mUserManager;
 
     static public String        VERSION_AH;
     static public ArrayList     VERSION_SPEC;
@@ -69,7 +73,8 @@ public class AndroidHost extends AppCompatActivity {
     private hostReceiver            bReceiver;
 
     private LayoutInflater          mInflater;
-    private HostWebView mWebView;
+    private HostWebView             mWebView;
+    private EndView                 mEndView;
     private View                    mCurrView = null;
 
 
@@ -94,18 +99,19 @@ public class AndroidHost extends AppCompatActivity {
     public final static String  DOWNLOAD_PATH  = Environment.getExternalStorageDirectory() + File.separator + Environment.DIRECTORY_DOWNLOADS;
     public final static String  EXT_ASSET_PATH = Environment.getExternalStorageDirectory() + File.separator + TCONST.EDFORGE_ASSET_FOLDER;
 
+
     private final  String  TAG = "CAndroidHost";
 
-    private final String[] tutors = {"/mats.html","/dr.html","/rq.html","/intro.html","/ted.html"};
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
 
+        FrameLayout.LayoutParams params;
+
         // Note = we don't want the system to try and recreate any of our views- always pass null
         //
         super.onCreate(null);
-
-        FrameLayout.LayoutParams params;
 
         // Get the primary container for tutors
         //
@@ -115,10 +121,12 @@ public class AndroidHost extends AppCompatActivity {
         // Capture the local broadcast manager
         bManager = LocalBroadcastManager.getInstance(this);
 
-        IntentFilter filter = new IntentFilter(LAUNCH_TUTOR);
+        IntentFilter filter = new IntentFilter(TUTOR_COMPLETE);
 
-        bReceiver = new hostReceiver();
+        mUserManager = UserManager.getInstance();
+        bReceiver    = new hostReceiver();
         bManager.registerReceiver(bReceiver, filter);
+
 
         //TODO: fix up preferences initialization
         onStartTutor();
@@ -167,9 +175,39 @@ public class AndroidHost extends AppCompatActivity {
         params = new FrameLayout.LayoutParams(FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.MATCH_PARENT);
         mWebView.setLayoutParams(params);
 
+        mEndView = (EndView) mInflater.inflate(R.layout.end_view, null );
+        params = new FrameLayout.LayoutParams(FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.MATCH_PARENT);
+        mEndView.setLayoutParams(params);
+
+
+        //        Log.i(TAG, "DEVICEOWNER LAUNCH:" + launchIntent.getAction());
+        //        Log.i(TAG, "mProvisioningManager: " + (mProvisioningManager == null? "NULL": "NOTNULL"));
+        //
+        Intent launchIntent = getIntent();
+        String launchAction = launchIntent.getAction();
+
+        Toast.makeText(this, launchAction, Toast.LENGTH_SHORT).show();
+
         switchView(mWebView);
 
-        broadcast(LAUNCH_TUTOR, tutors[0]);
+        if(launchAction.equals(EFHOST_LAUNCH_INTENT)) {
+
+            String launchUser   = launchIntent.getStringExtra(TCONST.USER_FIELD);
+
+            Toast.makeText(this, launchUser, Toast.LENGTH_SHORT).show();
+
+            mUserManager.init(this);
+            mUserManager.initUser(launchUser);
+        }
+        else {
+
+            mUserManager.init(this);
+            mUserManager.initDebugUser();
+        }
+
+        // Launch the current Tutor - let the HostWbView handle the details
+        //
+        broadcast(LAUNCH_TUTOR);
     }
 
 
@@ -193,6 +231,19 @@ public class AndroidHost extends AppCompatActivity {
                 | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY
                 | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
                 | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION);
+    }
+
+
+    private HostWebView createWebView() {
+
+        FrameLayout.LayoutParams params;
+        HostWebView              WebView;
+
+        WebView = (HostWebView) mInflater.inflate(R.layout.web_view, null);
+        params = new FrameLayout.LayoutParams(FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.MATCH_PARENT);
+        WebView.setLayoutParams(params);
+
+        return WebView;
     }
 
 
@@ -521,6 +572,13 @@ public class AndroidHost extends AppCompatActivity {
     }
 
 
+    public void broadcast(String Action) {
+
+        Intent msg = new Intent(Action);
+
+        bManager.sendBroadcast(msg);
+    }
+
     public void broadcast(String Action, String Msg) {
 
         Intent msg = new Intent(Action);
@@ -537,7 +595,20 @@ public class AndroidHost extends AppCompatActivity {
             Log.d("homeReceiver", "Broadcast recieved: ");
 
             switch(intent.getAction()) {
+                case TUTOR_COMPLETE:
 
+                    if(mUserManager.hasMoreTutors()) {
+                        HostWebView WebView = createWebView();
+
+                        switchView(WebView);
+
+                        mWebView = WebView;
+                        broadcast(LAUNCH_TUTOR);
+
+                    } else {
+                        switchView(mEndView);
+                    }
+                    break;
             }
         }
     }

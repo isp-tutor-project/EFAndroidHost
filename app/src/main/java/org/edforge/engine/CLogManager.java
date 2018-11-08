@@ -16,12 +16,17 @@
 //
 //*********************************************************************************
 
-package org.edforge.net;
+package org.edforge.engine;
 
 import android.os.Environment;
 import android.os.Handler;
 import android.os.HandlerThread;
 import android.util.Log;
+
+import org.edforge.net.CErrorManager;
+import org.edforge.net.CPreferenceCache;
+import org.edforge.net.ILogManager;
+import org.edforge.net.TLOG_CONST;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -38,39 +43,29 @@ public class CLogManager implements ILogManager {
     private static final int OBJ_PART       = 0;
     private static final int VAL_PART       = 1;
 
-    //private static final String LOG_VERSION = "1.0.0";    // initial release
-    private static final String LOG_VERSION = "1.0.1";      // Updated LTKPlus to use LTKPLUS tag
+    private static final String LOG_VERSION = "1.0.0";    // initial release
 
     private static String currenttutor      = "<undefined>";
     private String TERMINATING_PACKET       = "{\"end\":\"end\"}]}";
     private byte[] TERMINATE_BYTES          = TERMINATING_PACKET.getBytes();
 
-    private LogThread      logThread;                   // background thread handling log data
-    private String log_Path;
-    private boolean        isLogging = false;
+    private LogThread       logThread;                   // background thread handling log data
+    private String          log_Path;
+    private boolean         isLogging = false;
 
     private Handler logHandler;
     private HashMap queueMap    = new HashMap();
     private boolean mDisabled   = false;
 
-    private File logFile;
-    private FileOutputStream logStream;
-    private java.nio.channels.FileLock logLock;
+    private File                        logFile;
+    private FileOutputStream            logStream;
+    private java.nio.channels.FileLock  logLock;
 
-    private FileWriter logWriter;
-    private RandomAccessFile seekableLogWriter;
-    private boolean                    seekable = true;
+    private FileWriter                  logWriter;
+    private RandomAccessFile            seekableLogWriter;
+    private boolean                     seekable = true;
 
-    private boolean                    logWriterValid = false;
-
-    // Datashop specific
-
-    private boolean                    loggingDS = false;
-    private File logDSFile;
-    private FileOutputStream logDSStream;
-    private java.nio.channels.FileLock logDSLock;
-    private FileWriter logDSWriter;
-    private boolean                    logDSWriterValid = false;
+    private boolean                     logWriterValid = false;
 
 
     final private String TAG = "CLogManager";
@@ -310,29 +305,6 @@ public class CLogManager implements ILogManager {
             } catch (Exception e) {
                 Log.e(TAG, "lockLog Failed: " + e);
             }
-
-
-            //**** DATASHOP
-
-            if(loggingDS) {
-
-                // Generate a tutor instance-unique id for DataShop
-                //
-                outDSPath += dsPath;
-
-                logDSFile = new File(outDSPath);
-
-                try {
-                    logDSStream = new FileOutputStream(logDSFile);
-                    logDSLock = logDSStream.getChannel().lock();
-                    logDSWriter = new FileWriter(outDSPath, TLOG_CONST.APPEND);
-
-                    logDSWriterValid = true;
-
-                } catch (Exception e) {
-                    Log.e(TAG, "DataShop lockLog Failed: " + e);
-                }
-            }
         }
     }
 
@@ -364,25 +336,6 @@ public class CLogManager implements ILogManager {
         }
         catch(Exception e) {
             Log.e(TAG, "releaseLog Failed: " + e);
-        }
-
-        //**** DATASHOP
-
-        if(loggingDS) {
-            try {
-                if (logDSWriterValid) {
-
-                    logDSWriterValid = false;
-
-                    logDSWriter.flush();
-                    logDSWriter.close();
-
-                    logDSLock.release();
-                    logDSStream.close();
-                }
-            } catch (Exception e) {
-                Log.e(TAG, "releaseLog Failed: " + e);
-            }
         }
     }
 
@@ -420,7 +373,6 @@ public class CLogManager implements ILogManager {
         }
     }
 
-
     /**
      * Keep a mapping of pending messages so we can flush the queue if we want to terminate
      * the tutor before it finishes naturally.
@@ -435,7 +387,6 @@ public class CLogManager implements ILogManager {
             logHandler.post(qCommand);
         }
     }
-
 
     /**
      * Post a command to this scenegraph queue
