@@ -20,8 +20,6 @@
             android:screenOrientation="sensorLandscape"
             android:configChanges="orientation|screenSize"
             android:label="@string/app_name"
-            android:launchMode="singleTask"
-            android:excludeFromRecents="true"
             android:lockTaskMode="if_whitelisted">
 
             <intent-filter>
@@ -32,6 +30,14 @@
                 <category android:name="android.intent.category.DEFAULT" />
             </intent-filter>
         </activity>
+
+        <receiver android:name=".PlugStatusReceiver">
+            <intent-filter>
+                <action android:name="android.intent.action.ACTION_POWER_CONNECTED"/>
+                <action android:name="android.intent.action.ACTION_POWER_DISCONNECTED"/>
+            </intent-filter>
+        </receiver>
+
     </application>
 
 </manifest>
