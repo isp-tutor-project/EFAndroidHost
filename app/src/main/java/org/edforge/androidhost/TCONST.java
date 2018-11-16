@@ -72,15 +72,9 @@ public class TCONST {
 
     public static final String EDFORGEZIPTEMP = "efztempfile.zip";
 
-    public static final String EFOWNER_LAUNCH_INTENT  = "org.edforge.efdeviceowner.EF_DEVICE_OWNER";
-    public static final String EFHOME_LAUNCH_INTENT   = "org.edforge.efhomescreen.EF_HOME_SCREEN";
-    public static final String EFHOST_LAUNCH_INTENT   = "org.edforge.androidhost.EF_ANDROID_HOST";
-    public static final String LAUNCH_HOME            = Intent.ACTION_MAIN;
-
-
     public static final String DEFAULT_TUTOR_INSTR = "tutor_seq_dayone.json";
 
-    public static final String DEBUG_USER_JSON  = "{\"userName\":\"DEBUG-Jan-25\", \"currTutorNdx\":0, \"currScene\":\"Scene0\", \"instructionSeq\":\"tutor_seq_dayone.json\"}";
+    public static final String DEBUG_USER_JSON  = "{\"userName\":\"KEVINWI_DEC_27\", \"currTutorNdx\":0, \"currScene\":\"Scene0\", \"instructionSeq\":\"tutor_seq_ted_baseline.json\"}";
     public static final String DEBUG_TUTOR_LIST = "";
 
 
@@ -289,5 +283,17 @@ public class TCONST {
 
 
     public static final String TEXT_FIELD       = ".text";
+
+    public static final String EFHOST_FINISHER_INTENT   = "org.edforge.androidhost.EFHOST_FINISHER_INTENT";
+    public static final String EFHOME_FINISHER_INTENT   = "org.edforge.efhomescreen.EFHOME_FINISHER_INTENT";
+    public static final String EFHOME_STARTER_INTENT    = "org.edforge.efhomescreen.EFHOME_STARTER_INTENT";
+
+    public static final String PLUG_CONNECT     = "android.intent.action.ACTION_POWER_CONNECTED";
+    public static final String PLUG_DISCONNECT  = "android.intent.action.ACTION_POWER_DISCONNECTED";
+
+    public static final String EFOWNER_LAUNCH_INTENT  = "org.edforge.efdeviceowner.EF_DEVICE_OWNER";
+    public static final String EFHOME_LAUNCH_INTENT   = "org.edforge.efhomescreen.EF_HOME_SCREEN";
+    public static final String EFHOST_LAUNCH_INTENT   = "org.edforge.androidhost.EF_ANDROID_HOST";
+    public static final String LAUNCH_HOME            = Intent.ACTION_MAIN;
 
 }

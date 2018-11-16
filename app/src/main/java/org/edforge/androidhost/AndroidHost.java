@@ -79,7 +79,7 @@ public class AndroidHost extends AppCompatActivity {
 
 
     static public String        APP_PRIVATE_FILES;
-    static public String        LOG_ID = "STARTUP";
+    static public String        LOG_ID = "AndroidHost";
 
     static public Activity      ACTIVITY;
     static public String        PACKAGE_NAME;
@@ -92,6 +92,7 @@ public class AndroidHost extends AppCompatActivity {
     static private IGuidView guidCallBack;
 
     private boolean                 isReady       = false;
+    private boolean                 noMoreTutors  = false;
     private boolean                 engineStarted = false;
     static public boolean           STANDALONE    = false;
 
@@ -119,11 +120,12 @@ public class AndroidHost extends AppCompatActivity {
         masterContainer = (MasterContainer)findViewById(R.id.master_container);
 
         // Capture the local broadcast manager
-        bManager = LocalBroadcastManager.getInstance(this);
+        bManager     = LocalBroadcastManager.getInstance(this);
+        mUserManager = UserManager.getInstance();
 
         IntentFilter filter = new IntentFilter(TUTOR_COMPLETE);
-
-        mUserManager = UserManager.getInstance();
+        filter.addAction(TCONST.EFHOST_FINISHER_INTENT);
+        
         bReceiver    = new hostReceiver();
         bManager.registerReceiver(bReceiver, filter);
 
@@ -192,9 +194,10 @@ public class AndroidHost extends AppCompatActivity {
 
         if(launchAction.equals(EFHOST_LAUNCH_INTENT)) {
 
-            String launchUser   = launchIntent.getStringExtra(TCONST.USER_FIELD);
+            String launchUser = launchIntent.getStringExtra(TCONST.USER_FIELD).replace("-","_").toUpperCase();
 
             Toast.makeText(this, launchUser, Toast.LENGTH_SHORT).show();
+            Log.d(TAG, "Launch User: " + launchUser);
 
             mUserManager.init(this);
             mUserManager.initUser(launchUser);
@@ -210,6 +213,7 @@ public class AndroidHost extends AppCompatActivity {
         broadcast(LAUNCH_TUTOR);
     }
 
+    
 
     /**
      * Ignore the state bundle
@@ -431,11 +435,11 @@ public class AndroidHost extends AppCompatActivity {
 
         logManager.postEvent_V(TAG, "EdForge:onBackPressed");
 
-        // Allow the screen to sleep when not in a session
-        //
-        getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+        if(noMoreTutors) {
 
-        setFullScreen();
+            super.onBackPressed();
+            finish();
+        }
     }
 
 
@@ -557,6 +561,8 @@ public class AndroidHost extends AppCompatActivity {
 
         super.onDestroy();
 
+        bManager.unregisterReceiver(bReceiver);
+
         logManager.postDateTimeStamp(GRAPH_MSG, "EdForge:SessionEnd");
         logManager.stopLogging();
     }
@@ -607,8 +613,14 @@ public class AndroidHost extends AppCompatActivity {
 
                     } else {
                         switchView(mEndView);
+                        noMoreTutors = true;
                     }
                     break;
+
+                case TCONST.EFHOST_FINISHER_INTENT:
+                    stopLockTask();
+                    finish();
+                    break;    
             }
         }
     }
