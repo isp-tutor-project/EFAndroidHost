@@ -4,6 +4,7 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.pm.PackageManager;
 import android.os.Environment;
 import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
@@ -92,6 +93,8 @@ public class UserManager {
             Log.e(TAG, "UserData Parse Error: " + e);
         }
     }
+
+
     private void updateUserPackage() {
 
         mJsonWriter.write(mUserDataPackage, mUserInfoPath, REPLACE);
@@ -123,6 +126,8 @@ public class UserManager {
 
         mUser     = user;
         mUserData = mUserDataPackage.getUserByName(mUser);
+
+        Log.d(TAG, "Launch UserData: " + mUserData);
 
         initEmptyInstruction();
         loadTutorDesc();
@@ -160,7 +165,7 @@ public class UserManager {
 
     private void prepLogs() {
 
-        String LogDataPath = mBasePath + EDFORGE_DATA_FOLDER + mUser.replace("-","_");
+        String LogDataPath = mBasePath + EDFORGE_DATA_FOLDER + getUserPath();
         File userFolder = new File(LogDataPath);
 
         if (!userFolder.exists())
@@ -246,8 +251,30 @@ public class UserManager {
         broadcast(TUTOR_COMPLETE);
     }
 
-    private String getLogPath() {
-        return mBasePath + EDFORGE_DATA_FOLDER + mUser.replace("-","_") +  mTutors.logFolder(mUserData.currTutorNdx);
+
+    private String getUserPath() {
+
+        return mUser.replace("-","_").toUpperCase();
+    }
+
+    private String getPreviousLogPath() {
+
+        String prevLogPath = "";
+
+        if (mUserData.currTutorNdx > 0) {
+
+            int prevTutorNdx = mUserData.currTutorNdx - 1;
+            prevLogPath = mBasePath + EDFORGE_DATA_FOLDER + getUserPath() +  mTutors.logFolder(prevTutorNdx);
+        }
+        else {
+            prevLogPath = null;
+        }
+
+        return prevLogPath;
+    }
+
+    private String getCurrentLogPath() {
+        return mBasePath + EDFORGE_DATA_FOLDER + getUserPath() + "/" + mTutors.logFolder(mUserData.currTutorNdx);
     }
 
     @android.webkit.JavascriptInterface
@@ -260,14 +287,67 @@ public class UserManager {
         String buffer = "{\"scene\":" + scene + "," + "\"module\":" + module + "," + "\"tutor\":" + tutor + "}";
 
         try {
-            logWriter = new FileWriter(getLogPath() + "/" + scenename + ".json");
+            logWriter = new FileWriter(getCurrentLogPath() + "/" + scenename + ".json");
+
+            logWriter.write(buffer);
+            logWriter.close();
+
+            logWriter = new FileWriter(getCurrentLogPath() + "/tutor_state.json");
 
             logWriter.write(buffer);
             logWriter.close();
         }
         catch(Exception e) {
-
+            Log.e(TAG, "Log Write Failed : " + e);
         }
+    }
+
+
+    @android.webkit.JavascriptInterface
+    public void updateTutorState(String tutorStateJSON) {
+
+        Log.i(TAG, "LJSCR update Tutor State: ");
+
+        FileWriter logWriter;
+
+        try {
+            logWriter = new FileWriter("EdForge/tutorstatedata.json");
+
+            logWriter.write(tutorStateJSON);
+            logWriter.close();
+        }
+        catch(Exception e) {
+            Log.e(TAG, "Log Write Failed : " + e);
+        }
+    }
+
+
+    @android.webkit.JavascriptInterface
+    public String getUserId() {
+
+        Log.i(TAG, "LJSCR get Uer ID: ");
+
+        return getUserPath();
+    }
+
+
+    @android.webkit.JavascriptInterface
+    public String getFeatures() {
+
+        Log.i(TAG, "LJSCR getFeatures: ");
+
+        return mTutors.getTutorDescByIndex(mUserData.currTutorNdx).features;
+    }
+
+
+    @android.webkit.JavascriptInterface
+    public String getTutorState() {
+
+        Log.i(TAG, "LJSCR getTutorState: ");
+
+        String jsonData  = JSON_Helper.cacheDataByName(getPreviousLogPath() + "/tutor_state.json");
+
+        return jsonData;
     }
 
 }

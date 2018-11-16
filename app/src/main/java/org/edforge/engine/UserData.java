@@ -71,6 +71,8 @@ public class UserData implements ISerializableObject {
     public void loadJSON(JSONObject jsonObj, IScope scope) {
 
         JSON_Helper.parseSelf(jsonObj, this, CClassMap.classMap, scope);
+
+        userName = userName.replace("-","_").toUpperCase();
     }
 
 }

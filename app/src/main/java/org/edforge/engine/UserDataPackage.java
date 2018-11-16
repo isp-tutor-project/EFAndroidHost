@@ -1,5 +1,7 @@
 package org.edforge.engine;
 
+import android.util.Log;
+
 import org.edforge.util.CClassMap;
 import org.edforge.util.IScope;
 import org.edforge.util.ISerializableObject;
@@ -96,6 +98,9 @@ public class UserDataPackage implements ISerializableObject {
         mUserNdx = -1;
 
         for(int i1 = 0 ; i1 < userArray.size() ; i1++) {
+
+            //#TEST
+            // Log.d(TAG, "Launch User: " + userArray.get(i1).userName);
 
             if (userArray.get(i1).userName.equals(userName)) {
                 mUserNdx = i1;

@@ -3,13 +3,14 @@ package org.edforge.engine;
 import android.media.MediaPlayer;
 import android.os.Handler;
 import android.os.Looper;
+import android.util.Log;
 import android.webkit.WebView;
 
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 
-public class CMediaPlayer extends MediaPlayer implements MediaPlayer.OnPreparedListener, MediaPlayer.OnCompletionListener {
+public class CMediaPlayer extends MediaPlayer implements MediaPlayer.OnPreparedListener, MediaPlayer.OnCompletionListener, MediaPlayer.OnErrorListener {
 
     private WebView mWebView;
 
@@ -23,20 +24,23 @@ public class CMediaPlayer extends MediaPlayer implements MediaPlayer.OnPreparedL
     public long          index = 0;
 
     private final Handler mainHandler = new Handler(Looper.getMainLooper());
-    private HashMap queueMap    = new HashMap();
+    private HashMap       queueMap    = new HashMap();
     private boolean       mDisabled   = false;
-
-
 
     public CMediaPlayer(WebView webView) {
         mWebView = webView;
     }
+
+    private final  String  TAG = "CMediaPlayer";
+
+
 
 
     public void play() {
 
         if(!mPlaying) {
             if(mIsReady) {
+                setLooping(false);
                 start();
                 mPlaying = true;
             }
@@ -122,6 +126,13 @@ public class CMediaPlayer extends MediaPlayer implements MediaPlayer.OnPreparedL
         }
     }
 
+    @Override
+    public boolean onError(MediaPlayer mediaPlayer, int i, int i1) {
+
+        Log.d(TAG, "Media Error: " + i);
+        return true;
+    }
+
 
 //************************************************************************
 
@@ -146,6 +157,7 @@ public class CMediaPlayer extends MediaPlayer implements MediaPlayer.OnPreparedL
 
                 switch (_command) {
                     case "complete":
+                        Log.d(TAG,"LJSCR Sending Completion Event");
                         mWebView.evaluateJavascript("javascript:EFSoundEvent('complete');", null);
                         break;
                 }

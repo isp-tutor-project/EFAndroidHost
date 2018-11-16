@@ -74,7 +74,7 @@ public class TCONST {
 
     public static final String DEFAULT_TUTOR_INSTR = "tutor_seq_dayone.json";
 
-    public static final String DEBUG_USER_JSON  = "{\"userName\":\"DEBUG-Jan-25\", \"currTutorNdx\":0, \"currScene\":\"Scene0\", \"instructionSeq\":\"tutor_seq_dayone.json\"}";
+    public static final String DEBUG_USER_JSON  = "{\"userName\":\"KEVINWI_DEC_27\", \"currTutorNdx\":0, \"currScene\":\"Scene0\", \"instructionSeq\":\"tutor_seq_ted_baseline.json\"}";
     public static final String DEBUG_TUTOR_LIST = "";
 
 

@@ -79,7 +79,7 @@ public class AndroidHost extends AppCompatActivity {
 
 
     static public String        APP_PRIVATE_FILES;
-    static public String        LOG_ID = "STARTUP";
+    static public String        LOG_ID = "AndroidHost";
 
     static public Activity      ACTIVITY;
     static public String        PACKAGE_NAME;
@@ -194,9 +194,10 @@ public class AndroidHost extends AppCompatActivity {
 
         if(launchAction.equals(EFHOST_LAUNCH_INTENT)) {
 
-            String launchUser   = launchIntent.getStringExtra(TCONST.USER_FIELD);
+            String launchUser = launchIntent.getStringExtra(TCONST.USER_FIELD).replace("-","_").toUpperCase();
 
             Toast.makeText(this, launchUser, Toast.LENGTH_SHORT).show();
+            Log.d(TAG, "Launch User: " + launchUser);
 
             mUserManager.init(this);
             mUserManager.initUser(launchUser);
@@ -437,7 +438,7 @@ public class AndroidHost extends AppCompatActivity {
         if(noMoreTutors) {
 
             super.onBackPressed();
-            // i.e. finish();
+            finish();
         }
     }
 
@@ -617,6 +618,7 @@ public class AndroidHost extends AppCompatActivity {
                     break;
 
                 case TCONST.EFHOST_FINISHER_INTENT:
+                    stopLockTask();
                     finish();
                     break;    
             }
