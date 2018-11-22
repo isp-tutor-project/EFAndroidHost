@@ -40,6 +40,7 @@ public class TCONST {
     public static final String EDFORGE_LOG_FOLDER     = "/EdForge_LOG/";
     public static final String EDFORGE_DATA_FOLDER    = "/EdForge_DATA/";
     public static final String EDFORGE_DATA_TRANSFER  = "/EdForge_XFER/";
+    public static final String EDFORGE_TUTOR_DATA     = "/EdForge/EFTutors/";
 
     public static final String USER_DATA            = "isp_userdata.json";
 

@@ -204,8 +204,11 @@ public class AndroidHost extends AppCompatActivity {
         }
         else {
 
+            Toast.makeText(this, "DEBUG: GUESTC_JAN_1", Toast.LENGTH_SHORT).show();
+
             mUserManager.init(this);
-            mUserManager.initDebugUser();
+            mUserManager.initUser("GUESTBL_JAN_4");
+//            mUserManager.initDebugUser();
         }
 
         // Launch the current Tutor - let the HostWbView handle the details
@@ -570,11 +573,14 @@ public class AndroidHost extends AppCompatActivity {
 
     public void switchView(View target) {
 
-        if(mCurrView != null)
-            masterContainer.removeView(mCurrView);
+        if(mCurrView != target) {
 
-        masterContainer.addAndShow(target);
-        mCurrView = target;
+            if (mCurrView != null)
+                masterContainer.removeView(mCurrView);
+
+            masterContainer.addAndShow(target);
+            mCurrView = target;
+        }
     }
 
 
@@ -604,11 +610,13 @@ public class AndroidHost extends AppCompatActivity {
                 case TUTOR_COMPLETE:
 
                     if(mUserManager.hasMoreTutors()) {
-                        HostWebView WebView = createWebView();
+//                        HostWebView WebView = createWebView();
 
-                        switchView(WebView);
+//                        switchView(WebView);
+//
+//                        mWebView = WebView;
 
-                        mWebView = WebView;
+                        switchView(mWebView);
                         broadcast(LAUNCH_TUTOR);
 
                     } else {

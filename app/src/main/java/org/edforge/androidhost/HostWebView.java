@@ -21,6 +21,7 @@ import org.edforge.engine.UserManager;
 import java.io.File;
 
 import static org.edforge.androidhost.TCONST.LAUNCH_TUTOR;
+import static org.edforge.androidhost.TCONST.TUTOR_COMPLETE;
 
 /**
  * Created by kevin on 11/5/2018.
@@ -145,11 +146,17 @@ public class HostWebView extends FrameLayout {
             switch(intent.getAction()) {
 
                 case LAUNCH_TUTOR:
-                    String tutorName = mUserManager.getTutorFileName();
+                    if(mUserManager.hasMoreTutors()) {
 
-                    Log.d(TAG, "file:///" + basefolder + tutorName);
-                    //load file
-                    webView.loadUrl("file:///" + basefolder + tutorName);
+                        String tutorName = mUserManager.getTutorFileName();
+
+                        Log.d(TAG, "file:///" + basefolder + tutorName);
+                        //load file
+                        webView.loadUrl("file:///" + basefolder + tutorName);
+                    }
+                    else {
+                        broadcast(TUTOR_COMPLETE);
+                    }
                     break;
             }
         }

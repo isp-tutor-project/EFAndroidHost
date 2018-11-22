@@ -21,6 +21,7 @@ import static org.edforge.androidhost.TCONST.DEBUG_USER_JSON;
 import static org.edforge.androidhost.TCONST.DEFAULT_TUTOR_INSTR;
 import static org.edforge.androidhost.TCONST.EDFORGE_DATA_FOLDER;
 import static org.edforge.androidhost.TCONST.EDFORGE_FOLDER;
+import static org.edforge.androidhost.TCONST.EDFORGE_TUTOR_DATA;
 import static org.edforge.androidhost.TCONST.LAUNCH_TUTOR;
 import static org.edforge.androidhost.TCONST.REPLACE;
 import static org.edforge.androidhost.TCONST.TUTOR_COMPLETE;
@@ -311,7 +312,7 @@ public class UserManager {
         FileWriter logWriter;
 
         try {
-            logWriter = new FileWriter("EdForge/tutorstatedata.json");
+            logWriter = new FileWriter(mBasePath + EDFORGE_TUTOR_DATA + "tutorstatedata.json");
 
             logWriter.write(tutorStateJSON);
             logWriter.close();
