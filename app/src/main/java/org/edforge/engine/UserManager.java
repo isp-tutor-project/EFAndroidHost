@@ -42,6 +42,7 @@ public class UserManager {
     private String              mTutorDataPath;
 
     private TutorList           mTutors;
+    private boolean             mInitialized = false;
 
     private LocalBroadcastManager bManager;
     private userReceiver          bReceiver;
@@ -49,6 +50,9 @@ public class UserManager {
 
     private final  String  TAG = "UserManager";
 
+// TODO: Examine other ways to manage singletons that don't have this problem of JAVA class persistance
+// TODO: where we may get a singleton instance that was initialized in another invocation of an activity
+// TODO: And it may have been partially torn down as well.
 
 
     private static UserManager ourInstance = new UserManager();
@@ -66,22 +70,26 @@ public class UserManager {
 
         String jsonData;
 
-        mContext = context;
-        mJsonWriter = new JSON_Util();
+        if(!mInitialized) {
 
-        // Capture the local broadcast manager
-        bManager = LocalBroadcastManager.getInstance(mContext);
+            mInitialized = true;
+            mContext     = context;
+            mJsonWriter  = new JSON_Util();
 
-        IntentFilter filter = new IntentFilter(LAUNCH_TUTOR);
+            // Capture the local broadcast manager
+            bManager = LocalBroadcastManager.getInstance(mContext);
 
-        bReceiver = new userReceiver();
-        bManager.registerReceiver(bReceiver, filter);
+            IntentFilter filter = new IntentFilter(LAUNCH_TUTOR);
 
+            bReceiver = new userReceiver();
+            bManager.registerReceiver(bReceiver, filter);
+        }
 
-        // Load the user data file
+        // Always Load the user data file
         //
-        mUserInfoPath = mBasePath + EDFORGE_DATA_FOLDER + TCONST.USER_DATA;
+        mUserInfoPath    = mBasePath + EDFORGE_DATA_FOLDER + TCONST.USER_DATA;
         mUserDataPackage = new UserDataPackage();
+
         jsonData = JSON_Helper.cacheDataByName(mUserInfoPath);
 
         try {
@@ -93,6 +101,18 @@ public class UserManager {
             // TODO: Manage Exceptions
             Log.e(TAG, "UserData Parse Error: " + e);
         }
+    }
+
+
+    public void onDestroy() {
+
+        mInitialized = false;
+
+        if(bManager != null && bReceiver != null)
+            bManager.unregisterReceiver(bReceiver);
+
+        bManager  = null;
+        bReceiver = null;
     }
 
 
@@ -189,7 +209,7 @@ public class UserManager {
 
     public String getTutorFileName() {
 
-        return mTutors.getTutorDescByIndex(mUserData.currTutorNdx).launcher;
+        return mTutors.launcher(mUserData.currTutorNdx);
     }
 
     public void broadcast(String Action) {
@@ -233,10 +253,11 @@ public class UserManager {
 
         mUserData.currScene = sceneid;
 
-        updateUserPackage();
-
         if(sceneid.toLowerCase().equals("ssceneend")) {
             tutorComplete();
+        }
+        else {
+            updateUserPackage();
         }
     }
 
@@ -246,10 +267,36 @@ public class UserManager {
 
         Log.i(TAG, "LJSCR Tutor Complete: ");
 
+        mUserData.currScene = "";
         mUserData.currTutorNdx++;
 
         updateUserPackage();
         broadcast(TUTOR_COMPLETE);
+    }
+
+
+    @android.webkit.JavascriptInterface
+    public String getUserId() {
+
+        Log.i(TAG, "LJSCR get Uer ID: ");
+
+        return getUserPath();
+    }
+
+
+    @android.webkit.JavascriptInterface
+    public String getFeatures() {
+
+        Log.i(TAG, "LJSCR getFeatures: ");
+
+        return mTutors.features(mUserData.currTutorNdx);
+    }
+
+
+    @android.webkit.JavascriptInterface
+    public String getCurrentScene() {
+
+        return mUserData.currScene;
     }
 
 
@@ -292,11 +339,6 @@ public class UserManager {
 
             logWriter.write(buffer);
             logWriter.close();
-
-            logWriter = new FileWriter(getCurrentLogPath() + "/tutor_state.json");
-
-            logWriter.write(buffer);
-            logWriter.close();
         }
         catch(Exception e) {
             Log.e(TAG, "Log Write Failed : " + e);
@@ -304,15 +346,23 @@ public class UserManager {
     }
 
 
+    // Note the Tutor ID set in the tutorconfig.json sets the state that should be used with the
+    // tutor - allows tutors to share state - i.e. as a continuous instruction sequence
+    //
+    private String getTutorStatePath(String tutorID) {
+
+        return mBasePath + EDFORGE_DATA_FOLDER + getUserPath() + "/" + "tutorstate_" + tutorID + ".json";
+    }
+
     @android.webkit.JavascriptInterface
-    public void updateTutorState(String tutorStateJSON) {
+    public void updateTutorState(String tutorID, String tutorStateJSON) {
 
         Log.i(TAG, "LJSCR update Tutor State: ");
 
         FileWriter logWriter;
 
         try {
-            logWriter = new FileWriter(mBasePath + EDFORGE_TUTOR_DATA + "tutorstatedata.json");
+            logWriter = new FileWriter(getTutorStatePath(tutorID));
 
             logWriter.write(tutorStateJSON);
             logWriter.close();
@@ -324,29 +374,11 @@ public class UserManager {
 
 
     @android.webkit.JavascriptInterface
-    public String getUserId() {
-
-        Log.i(TAG, "LJSCR get Uer ID: ");
-
-        return getUserPath();
-    }
-
-
-    @android.webkit.JavascriptInterface
-    public String getFeatures() {
-
-        Log.i(TAG, "LJSCR getFeatures: ");
-
-        return mTutors.getTutorDescByIndex(mUserData.currTutorNdx).features;
-    }
-
-
-    @android.webkit.JavascriptInterface
-    public String getTutorState() {
+    public String getTutorState(String tutorID) {
 
         Log.i(TAG, "LJSCR getTutorState: ");
 
-        String jsonData  = JSON_Helper.cacheDataByName(getPreviousLogPath() + "/tutor_state.json");
+        String jsonData  = JSON_Helper.cacheDataByName(getTutorStatePath(tutorID));
 
         return jsonData;
     }

@@ -21,6 +21,8 @@ public class EndView extends FrameLayout {
 
     private Context mContext;
 
+    private Boolean alive = true;
+
     final private String       TAG = "HostWebView";
 
 
@@ -43,4 +45,11 @@ public class EndView extends FrameLayout {
 
         mContext = context;
     }
+
+    public void onDestroy() {
+
+        alive = false;
+    }
+
+
 }

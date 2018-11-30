@@ -19,12 +19,16 @@ import java.util.Arrays;
 public class UserDataPackage implements ISerializableObject {
 
     private ArrayList<UserData> userArray;
+    private ArrayList<UserData> loginArray;
+
+    public int        mUserNdx;
 
     // json loadable
     public UserData   currUser;
-    public UserData[] users;
 
-    public int        mUserNdx;
+    public UserData[] users;
+    public UserData[] userLogins;
+
 
     final private String TAG = "UserDataPackage";
 
@@ -66,6 +70,12 @@ public class UserDataPackage implements ISerializableObject {
 
         userArray.add(userData);
         getUserIndexByName(userData.userName);
+    }
+
+
+    public void addLogin(UserData user) {
+
+        loginArray.add(user);
     }
 
 
@@ -112,15 +122,16 @@ public class UserDataPackage implements ISerializableObject {
     }
 
 
-
     @Override
-    public void saveJSON(JSON_Util jsonWriter) {
+    public void saveJSON(JSON_Util writer) {
 
-        jsonWriter.addElement("currUser", currUser);
+        UserData[] outputData;
 
-        UserData[] outputData = userArray.toArray(new UserData[userArray.size()]);
+        outputData = userArray.toArray(new UserData[userArray.size()]);
+        writer.addObjectArray("users", outputData);
 
-        jsonWriter.addObjectArray("users", outputData);
+        outputData= loginArray.toArray(new UserData[loginArray.size()]);
+        writer.addObjectArray("userLogins", outputData);
     }
 
     @Override
@@ -128,7 +139,9 @@ public class UserDataPackage implements ISerializableObject {
 
         JSON_Helper.parseSelf(jsonObj, this, CClassMap.classMap, scope);
 
-        userArray = new ArrayList<UserData>(Arrays.asList(users));
+        userArray  = new ArrayList<UserData>(Arrays.asList(users));
+        loginArray = new ArrayList<UserData>(Arrays.asList(userLogins));
     }
+
 }
 

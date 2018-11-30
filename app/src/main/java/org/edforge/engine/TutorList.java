@@ -38,11 +38,21 @@ public class TutorList implements ISerializableObject {
         return tutorArray.get(index);
     }
 
+    public String launcher(int index) {
+
+        return tutorArray.get(index).launcher;
+    }
+
     public String logFolder(int index) {
 
         return tutorArray.get(index).logfolder;
     }
-    
+
+    public String features(int index) {
+
+        return tutorArray.get(index).features;
+    }
+
     public int size() {
         
         return tutorArray.size();

@@ -21,6 +21,7 @@ public class UserData implements ISerializableObject {
     public int    currTutorNdx;
     public String currScene;
     public String instructionSeq;
+    public long   timeStamp;
 
 
     public UserData() {
@@ -29,6 +30,7 @@ public class UserData implements ISerializableObject {
         currTutorNdx    = 0;
         currScene       = "";
         instructionSeq  = "";
+        timeStamp       = System.currentTimeMillis();
     }
 
     public UserData(String _userName) {
@@ -37,16 +39,8 @@ public class UserData implements ISerializableObject {
         currTutorNdx    = 0;
         currScene       = "";
         instructionSeq  = "";
+        timeStamp       = System.currentTimeMillis();
     }
-
-    public UserData(String _userName, int _currTutorNdx, String _currScene, String _instructionSeq) {
-
-        userName        = _userName;
-        currTutorNdx    = _currTutorNdx;
-        currScene       = _currScene;
-        instructionSeq  = _instructionSeq;
-    }
-
 
 
     public void clone(UserData userData) {
@@ -55,6 +49,7 @@ public class UserData implements ISerializableObject {
         currTutorNdx    = userData.currTutorNdx;
         currScene       = userData.currScene;
         instructionSeq  = userData.instructionSeq;
+        timeStamp       = userData.timeStamp;
     }
 
 
@@ -65,6 +60,8 @@ public class UserData implements ISerializableObject {
         writer.addElement("currTutorNdx", currTutorNdx);
         writer.addElement("currScene", currScene);
         writer.addElement("instructionSeq", instructionSeq);
+        writer.addElement("timeStamp", timeStamp);
+
     }
 
     @Override

@@ -42,6 +42,7 @@ public class HostWebView extends FrameLayout {
     private File    folder;
     private String  sdcard;
     private File    basefolder;
+    private Boolean alive = true;
 
     private Intent mLaunch;
 
@@ -81,6 +82,48 @@ public class HostWebView extends FrameLayout {
 
         bReceiver = new webViewReceiver();
         bManager.registerReceiver(bReceiver, filter);
+    }
+
+
+    public void onDestroy() {
+
+        alive = false;
+
+        if(bManager != null && bReceiver != null)
+            bManager.unregisterReceiver(bReceiver);
+
+        bManager  = null;
+        bReceiver = null;
+
+        destroyWebView();
+    }
+
+    public void destroyWebView() {
+
+        webView.clearHistory();
+
+        // NOTE: clears RAM cache, if you pass true, it will also clear the disk cache.
+        // Probably not a great idea to pass true if you have other WebViews still alive.
+//        webView.clearCache(true);
+
+        // Loading a blank page is optional, but will ensure that the WebView isn't doing anything when you destroy it.
+        webView.loadUrl("about:blank");
+
+        webView.onPause();
+//        webView.removeAllViews();
+//        webView.destroyDrawingCache();
+
+        // NOTE: This pauses JavaScript execution for ALL WebViews,
+        // do not use if you have other WebViews still alive.
+        // If you create another WebView after calling this,
+        // make sure to call mWebView.resumeTimers().
+//        webView.pauseTimers();
+
+        // NOTE: This can occasionally cause a segfault below API 17 (4.2)
+        webView.destroy();
+
+        // Null out the reference so that you don't end up re-using it.
+        webView = null;
     }
 
 
@@ -143,21 +186,32 @@ public class HostWebView extends FrameLayout {
 
             Log.d("nameView", "Broadcast recieved: ");
 
-            switch(intent.getAction()) {
+            // You never want an inactive webview responding to these messages
+            //
+            if(alive) {
 
-                case LAUNCH_TUTOR:
-                    if(mUserManager.hasMoreTutors()) {
+                switch (intent.getAction()) {
 
-                        String tutorName = mUserManager.getTutorFileName();
+                    case LAUNCH_TUTOR:
+                        if (mUserManager.hasMoreTutors()) {
 
-                        Log.d(TAG, "file:///" + basefolder + tutorName);
-                        //load file
-                        webView.loadUrl("file:///" + basefolder + tutorName);
-                    }
-                    else {
-                        broadcast(TUTOR_COMPLETE);
-                    }
-                    break;
+                            String tutorName = mUserManager.getTutorFileName();
+
+                            webView.clearHistory();
+                            webView.loadUrl("about:blank");
+
+                            //load file
+
+                            Log.d(TAG, "file:///" + basefolder + tutorName);
+                            webView.loadUrl("file:///" + basefolder + tutorName);
+                        } else {
+
+                            webView.loadUrl("about:blank");
+
+                            broadcast(TUTOR_COMPLETE);
+                        }
+                        break;
+                }
             }
         }
     }

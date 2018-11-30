@@ -59,24 +59,23 @@ import static org.edforge.androidhost.TCONST.TUTOR_COMPLETE;
 
 public class AndroidHost extends AppCompatActivity {
 
-    static public MasterContainer       masterContainer;
-    static public ILogManager           logManager;
-    static public CTutorAssetManager    tutorAssetManager;
-    static private UserManager          mUserManager;
+    static public MasterContainer       masterContainer     = null;
+    static public ILogManager           logManager          = null;
+    static public CTutorAssetManager    tutorAssetManager   = null;
+    static private UserManager          mUserManager        = null;
 
     static public String        VERSION_AH;
     static public ArrayList     VERSION_SPEC;
 
     static public CDisplayMetrics displayMetrics;
 
-    private LocalBroadcastManager   bManager;
-    private hostReceiver            bReceiver;
+    private LocalBroadcastManager   bManager    = null;
+    private hostReceiver            bReceiver   = null;
 
-    private LayoutInflater          mInflater;
-    private HostWebView             mWebView;
-    private EndView                 mEndView;
-    private View                    mCurrView = null;
-
+    private LayoutInflater          mInflater   = null;
+    private HostWebView             mWebView    = null;
+    private EndView                 mEndView    = null;
+    private View                    mCurrView   = null;
 
     static public String        APP_PRIVATE_FILES;
     static public String        LOG_ID = "AndroidHost";
@@ -92,6 +91,7 @@ public class AndroidHost extends AppCompatActivity {
     static private IGuidView guidCallBack;
 
     private boolean                 isReady       = false;
+    private boolean                 isInitialized = false;
     private boolean                 noMoreTutors  = false;
     private boolean                 engineStarted = false;
     static public boolean           STANDALONE    = false;
@@ -114,73 +114,119 @@ public class AndroidHost extends AppCompatActivity {
         //
         super.onCreate(null);
 
-        // Get the primary container for tutors
-        //
-        setContentView(R.layout.activity_host);
-        masterContainer = (MasterContainer)findViewById(R.id.master_container);
+        if(!isInitialized) {
 
-        // Capture the local broadcast manager
-        bManager     = LocalBroadcastManager.getInstance(this);
-        mUserManager = UserManager.getInstance();
+            isInitialized = true;
 
-        IntentFilter filter = new IntentFilter(TUTOR_COMPLETE);
-        filter.addAction(TCONST.EFHOST_FINISHER_INTENT);
-        
-        bReceiver    = new hostReceiver();
-        bManager.registerReceiver(bReceiver, filter);
+            // Get the primary container for tutors
+            //
+            setContentView(R.layout.activity_host);
+            masterContainer = (MasterContainer) findViewById(R.id.master_container);
 
+            // Capture the local broadcast manager
+            bManager = LocalBroadcastManager.getInstance(this);
+            mUserManager = UserManager.getInstance();
 
-        //TODO: fix up preferences initialization
-        onStartTutor();
+            IntentFilter filter = new IntentFilter(TUTOR_COMPLETE);
+            filter.addAction(TCONST.EFHOST_FINISHER_INTENT);
+            filter.addAction(Intent.ACTION_POWER_CONNECTED);
+            filter.addAction(Intent.ACTION_POWER_DISCONNECTED);
 
-        PACKAGE_NAME = getApplicationContext().getPackageName();
-        ACTIVITY     = this;
+            bReceiver = new hostReceiver();
+            bManager.registerReceiver(bReceiver, filter);
 
-        VERSION_AH = BuildConfig.VERSION_NAME;
-        VERSION_SPEC = CAssetObject.parseVersionSpec(VERSION_AH);
+            //TODO: fix up preferences initialization
+            onStartTutor();
 
-        logManager = CLogManager.getInstance();
-        logManager.startLogging(LOG_PATH);
-        CErrorManager.setLogManager(logManager);
+            PACKAGE_NAME = getApplicationContext().getPackageName();
+            ACTIVITY = this;
 
-        // TODO : implement time stamps
-        logManager.postDateTimeStamp(GRAPH_MSG, "EdForge:SessionStart");
-        logManager.postEvent_I(GRAPH_MSG, "EngineVersion:" + VERSION_AH);
+            VERSION_AH = BuildConfig.VERSION_NAME;
+            VERSION_SPEC = CAssetObject.parseVersionSpec(VERSION_AH);
 
-        Log.v(TAG, "External_Download:" + DOWNLOAD_PATH);
+            logManager = CLogManager.getInstance();
+            logManager.startLogging(LOG_PATH);
+            CErrorManager.setLogManager(logManager);
 
-        // Set fullscreen and then get the screen metrics
-        //
-        // get the multiplier used for drawables at the current screen density and calc the
-        // correction rescale factor for design scale
-        // This initializes the static object
-        //
-        setFullScreen();
-        displayMetrics = CDisplayMetrics.getInstance(this);
+            // TODO : implement time stamps
+            logManager.postDateTimeStamp(GRAPH_MSG, "EdForge:SessionStart");
+            logManager.postEvent_I(GRAPH_MSG, "EngineVersion:" + VERSION_AH);
 
-        APP_PRIVATE_FILES = getApplicationContext().getExternalFilesDir("").getPath();
+            Log.v(TAG, "External_Download:" + DOWNLOAD_PATH);
 
-        // Initialize the JSON Helper STATICS - just throw away the object.
-        //
-        new JSON_Helper(getAssets(), CacheSource, AndroidHost.APP_PRIVATE_FILES);
+            // Set fullscreen and then get the screen metrics
+            //
+            // get the multiplier used for drawables at the current screen density and calc the
+            // correction rescale factor for design scale
+            // This initializes the static object
+            //
+            setFullScreen();
+            displayMetrics = CDisplayMetrics.getInstance(this);
 
-        // Initialize the media manager singleton - it needs access to the App assets.
-        //
+            APP_PRIVATE_FILES = getApplicationContext().getExternalFilesDir("").getPath();
+
+            // Initialize the JSON Helper STATICS - just throw away the object.
+            //
+            new JSON_Helper(getAssets(), CacheSource, AndroidHost.APP_PRIVATE_FILES);
+
+            // Initialize the media manager singleton - it needs access to the App assets.
+            //
 //        mMediaController = CMediaController.getInstance();
-        AssetManager mAssetManager = getApplicationContext().getAssets();
+            AssetManager mAssetManager = getApplicationContext().getAssets();
 //        mMediaController.setAssetManager(mAssetManager);
 
-        LayoutInflater inflater = (LayoutInflater)getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-        mInflater = (LayoutInflater)getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+            LayoutInflater inflater = (LayoutInflater) getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+            mInflater = (LayoutInflater) getSystemService(Context.LAYOUT_INFLATER_SERVICE);
 
-        mWebView = (HostWebView) mInflater.inflate(R.layout.web_view, null );
-        params = new FrameLayout.LayoutParams(FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.MATCH_PARENT);
-        mWebView.setLayoutParams(params);
+            Log.d(TAG, "CREATING WEBVIEW");
 
-        mEndView = (EndView) mInflater.inflate(R.layout.end_view, null );
-        params = new FrameLayout.LayoutParams(FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.MATCH_PARENT);
-        mEndView.setLayoutParams(params);
+            mWebView = (HostWebView) mInflater.inflate(R.layout.web_view, null);
+            params = new FrameLayout.LayoutParams(FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.MATCH_PARENT);
+            mWebView.setLayoutParams(params);
 
+            mEndView = (EndView) mInflater.inflate(R.layout.end_view, null);
+            params = new FrameLayout.LayoutParams(FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.MATCH_PARENT);
+            mEndView.setLayoutParams(params);
+        }
+
+        handleIntent();
+    }
+
+    @Override
+    protected void onDestroy() {
+
+        Log.v(TAG, "isfinishing:" + isFinishing());
+
+        super.onDestroy();
+
+        switchView(null);
+
+        if(mWebView != null) mWebView.onDestroy();
+        if(mEndView != null) mEndView.onDestroy();
+
+        if(mUserManager != null) mUserManager.onDestroy();
+
+        bManager.unregisterReceiver(bReceiver);
+
+        isInitialized = false;
+    }
+
+
+    // This launches in singleTask mode - so new instances are started through the onNewIntent
+    // mechanism.
+    //
+    @Override
+    protected void onNewIntent(Intent intent) {
+        super.onNewIntent(intent);
+        Log.d(TAG, "NEW INTENT RECEIVED");
+
+        setIntent(intent);
+
+        handleIntent();
+    }
+
+
+    private void handleIntent() {
 
         //        Log.i(TAG, "DEVICEOWNER LAUNCH:" + launchIntent.getAction());
         //        Log.i(TAG, "mProvisioningManager: " + (mProvisioningManager == null? "NULL": "NOTNULL"));
@@ -188,7 +234,7 @@ public class AndroidHost extends AppCompatActivity {
         Intent launchIntent = getIntent();
         String launchAction = launchIntent.getAction();
 
-        Toast.makeText(this, launchAction, Toast.LENGTH_SHORT).show();
+//        Toast.makeText(this, launchAction, Toast.LENGTH_SHORT).show();
 
         switchView(mWebView);
 
@@ -196,27 +242,36 @@ public class AndroidHost extends AppCompatActivity {
 
             String launchUser = launchIntent.getStringExtra(TCONST.USER_FIELD).replace("-","_").toUpperCase();
 
-            Toast.makeText(this, launchUser, Toast.LENGTH_SHORT).show();
-            Log.d(TAG, "Launch User: " + launchUser);
+            try {
+//            Toast.makeText(this, launchUser, Toast.LENGTH_SHORT).show();
+                Log.d(TAG, "Launch User: " + launchUser);
 
-            mUserManager.init(this);
-            mUserManager.initUser(launchUser);
+                mUserManager.init(this);
+                mUserManager.initUser(launchUser);
+
+                // Launch the current Tutor - let the HostWbView handle the details
+                //
+                broadcast(LAUNCH_TUTOR);
+            }
+            catch(Exception e) {
+
+                Toast.makeText(this, "INTERNAL ERROR: USER NOT FOUND> " + launchUser, Toast.LENGTH_SHORT).show();
+            }
         }
         else {
 
-            Toast.makeText(this, "DEBUG: GUESTC_JAN_1", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "DEBUG: KEVINWI_DEC_27", Toast.LENGTH_SHORT).show();
 
             mUserManager.init(this);
-            mUserManager.initUser("GUESTBL_JAN_4");
-//            mUserManager.initDebugUser();
+            mUserManager.initUser("KEVINWI_DEC_27");
+
+            // Launch the current Tutor - let the HostWebView handle the details
+            //
+            broadcast(LAUNCH_TUTOR);
         }
 
-        // Launch the current Tutor - let the HostWbView handle the details
-        //
-        broadcast(LAUNCH_TUTOR);
     }
 
-    
 
     /**
      * Ignore the state bundle
@@ -555,22 +610,6 @@ public class AndroidHost extends AppCompatActivity {
     }
 
 
-    @Override
-    protected void onDestroy() {
-
-        logManager.postEvent_V(TAG, "EdForge:onDestroy");
-
-        Log.v(TAG, "isfinishing:" + isFinishing());
-
-        super.onDestroy();
-
-        bManager.unregisterReceiver(bReceiver);
-
-        logManager.postDateTimeStamp(GRAPH_MSG, "EdForge:SessionEnd");
-        logManager.stopLogging();
-    }
-
-
     public void switchView(View target) {
 
         if(mCurrView != target) {
@@ -578,7 +617,9 @@ public class AndroidHost extends AppCompatActivity {
             if (mCurrView != null)
                 masterContainer.removeView(mCurrView);
 
-            masterContainer.addAndShow(target);
+            if (target != null)
+                masterContainer.addAndShow(target);
+
             mCurrView = target;
         }
     }
@@ -607,14 +648,20 @@ public class AndroidHost extends AppCompatActivity {
             Log.d("homeReceiver", "Broadcast recieved: ");
 
             switch(intent.getAction()) {
+
+                case Intent.ACTION_POWER_CONNECTED:
+                    Log.d(TAG, "POWER_CONNECTED");
+                    finish();
+                    break;
+
+                case Intent.ACTION_POWER_DISCONNECTED:
+                    Log.d(TAG, "POWER_DISCONNECTED");
+                    finish();
+                    break;
+
                 case TUTOR_COMPLETE:
 
                     if(mUserManager.hasMoreTutors()) {
-//                        HostWebView WebView = createWebView();
-
-//                        switchView(WebView);
-//
-//                        mWebView = WebView;
 
                         switchView(mWebView);
                         broadcast(LAUNCH_TUTOR);
@@ -626,7 +673,6 @@ public class AndroidHost extends AppCompatActivity {
                     break;
 
                 case TCONST.EFHOST_FINISHER_INTENT:
-                    stopLockTask();
                     finish();
                     break;    
             }

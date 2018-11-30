@@ -311,6 +311,17 @@ public class JSON_Util {
         }
     }
 
+    public void addElement(String key, long value)  {
+
+        try {
+            writer.name(key);
+            writer.value(value);
+        }
+        catch(Exception e) {
+            System.out.println("JSON_Util - Json Element add long failed: " +  e);
+        }
+    }
+
     public void addElement(String key, boolean value)  {
 
         try {
