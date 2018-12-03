@@ -103,7 +103,8 @@ public class TCONST {
     public static final String TUTOR_SELECTED   = "TUTOR_SELECTED";
     public static final String SKILL_SELECTED   = "SKILL_SELECTED";
     public static final String DEBUG_LAYOUT     = "DEBUG_LAYOUT";
-    public static final String TUTOR_COMPLETE   = "TUTOR_COMPLETE";
+    public static final String START_SESSION    = "org.EdForge.START_SESSION";
+    public static final String TUTOR_COMPLETE   = "org.EdForge.TUTOR_COMPLETE";
 
 
 

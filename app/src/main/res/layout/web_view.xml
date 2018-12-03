@@ -6,9 +6,9 @@
     android:background="#D5E9FD">
 
     <WebView
+        android:id="@+id/webview"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:background="#D5E9FD"
-        android:id="@+id/webview" />
+        android:background="#D5E9FD" />
 
 </org.edforge.androidhost.HostWebView>

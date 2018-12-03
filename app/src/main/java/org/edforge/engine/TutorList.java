@@ -19,6 +19,7 @@ public class TutorList implements ISerializableObject {
     private ArrayList<TutorDesc> tutorArray;
 
     // json loadable
+    public String comment;
     public TutorDesc[] tutors;
 
 
@@ -63,6 +64,7 @@ public class TutorList implements ISerializableObject {
 
         UserData[] outputData = tutorArray.toArray(new UserData[tutorArray.size()]);
 
+        jsonWriter.addElement("comment", this.comment);
         jsonWriter.addObjectArray("tutors", outputData);
 
     }

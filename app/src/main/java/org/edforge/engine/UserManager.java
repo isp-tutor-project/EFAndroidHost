@@ -4,7 +4,6 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.content.pm.PackageManager;
 import android.os.Environment;
 import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
@@ -21,7 +20,6 @@ import static org.edforge.androidhost.TCONST.DEBUG_USER_JSON;
 import static org.edforge.androidhost.TCONST.DEFAULT_TUTOR_INSTR;
 import static org.edforge.androidhost.TCONST.EDFORGE_DATA_FOLDER;
 import static org.edforge.androidhost.TCONST.EDFORGE_FOLDER;
-import static org.edforge.androidhost.TCONST.EDFORGE_TUTOR_DATA;
 import static org.edforge.androidhost.TCONST.LAUNCH_TUTOR;
 import static org.edforge.androidhost.TCONST.REPLACE;
 import static org.edforge.androidhost.TCONST.TUTOR_COMPLETE;
@@ -39,9 +37,9 @@ public class UserManager {
 
     private String              mBasePath;
     private String              mUserInfoPath;
-    private String              mTutorDataPath;
+    private String              mSessionPath;
 
-    private TutorList           mTutors;
+    private SessionList         mSessions;
     private boolean             mInitialized = false;
 
     private LocalBroadcastManager bManager;
@@ -126,16 +124,16 @@ public class UserManager {
 
         String jsonData;
 
-        mTutorDataPath = mBasePath + EDFORGE_FOLDER + mUserData.instructionSeq;
+        mSessionPath = mBasePath + EDFORGE_FOLDER + mUserData.instructionSeq;
 
         // Load the Instruction Description file
         //
-        mTutors = new TutorList();
-        jsonData  = JSON_Helper.cacheDataByName(mTutorDataPath);
+        mSessions = new SessionList();
+        jsonData  = JSON_Helper.cacheDataByName(mSessionPath);
 
         try {
             if(!jsonData.isEmpty())
-                mTutors.loadJSON(new JSONObject(jsonData), null);
+                mSessions.loadJSON(new JSONObject(jsonData), null);
 
         } catch (Exception e) {
 
@@ -152,8 +150,6 @@ public class UserManager {
 
         initEmptyInstruction();
         loadTutorDesc();
-
-        prepLogs();
     }
     public void initDebugUser() {
 
@@ -173,9 +169,8 @@ public class UserManager {
 
         initEmptyInstruction();
         loadTutorDesc();
-
-        prepLogs();
     }
+
     public void initEmptyInstruction() {
 
         if(mUserData.instructionSeq.equals("")) {
@@ -184,32 +179,38 @@ public class UserManager {
         }
     }
 
-    private void prepLogs() {
+    public void preCreateLogFolders() {
 
         String LogDataPath = mBasePath + EDFORGE_DATA_FOLDER + getUserPath();
-        File userFolder = new File(LogDataPath);
+        File userFolder    = new File(LogDataPath);
 
         if (!userFolder.exists())
                 userFolder.mkdir();
 
-        for(int i1 = 0 ; i1 < mTutors.size() ; i1++) {
-
-            File tutorFolder = new File(LogDataPath + "/" + mTutors.logFolder(i1));
-
-            if (!tutorFolder.exists())
-                    tutorFolder.mkdir();
-        }
+        mSessions.preCreateLogFolders(mUserData, LogDataPath);
     }
 
 
+    public boolean hasMoreSessions() {
+
+        mUserData.currSessionNdx++;
+        mUserData.currTutorNdx = 0;
+        mUserData.currScene    = "";
+
+        updateUserPackage();
+
+        return mSessions.hasMoreSessions(mUserData);
+    }
+
     public boolean hasMoreTutors() {
 
-        return mTutors.hasMoreTutors(mUserData.currTutorNdx);
+
+        return mSessions.hasMoreTutors(mUserData);
     }
 
     public String getTutorFileName() {
 
-        return mTutors.launcher(mUserData.currTutorNdx);
+        return mSessions.launcher(mUserData);
     }
 
     public void broadcast(String Action) {
@@ -246,14 +247,14 @@ public class UserManager {
 
 
     @android.webkit.JavascriptInterface
-    public void updateScene(String sceneid) {
+    public void updateScene(String sceneName, String sceneid) {
 
         Log.i(TAG, "LJSCR Updating Current Scene: " + sceneid);
         FileWriter fileWriter;
 
         mUserData.currScene = sceneid;
 
-        if(sceneid.toLowerCase().equals("ssceneend")) {
+        if(sceneName.toLowerCase().equals("ssceneend")) {
             tutorComplete();
         }
         else {
@@ -289,7 +290,7 @@ public class UserManager {
 
         Log.i(TAG, "LJSCR getFeatures: ");
 
-        return mTutors.features(mUserData.currTutorNdx);
+        return mSessions.features(mUserData);
     }
 
 
@@ -305,25 +306,11 @@ public class UserManager {
         return mUser.replace("-","_").toUpperCase();
     }
 
-    private String getPreviousLogPath() {
-
-        String prevLogPath = "";
-
-        if (mUserData.currTutorNdx > 0) {
-
-            int prevTutorNdx = mUserData.currTutorNdx - 1;
-            prevLogPath = mBasePath + EDFORGE_DATA_FOLDER + getUserPath() +  mTutors.logFolder(prevTutorNdx);
-        }
-        else {
-            prevLogPath = null;
-        }
-
-        return prevLogPath;
-    }
 
     private String getCurrentLogPath() {
-        return mBasePath + EDFORGE_DATA_FOLDER + getUserPath() + "/" + mTutors.logFolder(mUserData.currTutorNdx);
+        return mBasePath + EDFORGE_DATA_FOLDER + getUserPath() + "/" + mSessions.logFolder(mUserData);
     }
+
 
     @android.webkit.JavascriptInterface
     public void logState(String scenename, String scene, String module,String tutor) {

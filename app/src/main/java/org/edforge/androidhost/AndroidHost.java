@@ -52,6 +52,7 @@ import static org.edforge.androidhost.TCONST.EFHOST_LAUNCH_INTENT;
 import static org.edforge.androidhost.TCONST.GRAPH_MSG;
 import static org.edforge.androidhost.TCONST.EDFORGE_ASSET_PATTERN;
 import static org.edforge.androidhost.TCONST.LAUNCH_TUTOR;
+import static org.edforge.androidhost.TCONST.START_SESSION;
 import static org.edforge.androidhost.TCONST.TUTOR_COMPLETE;
 
 // Push content via ADB
@@ -131,6 +132,7 @@ public class AndroidHost extends AppCompatActivity {
             filter.addAction(TCONST.EFHOST_FINISHER_INTENT);
             filter.addAction(Intent.ACTION_POWER_CONNECTED);
             filter.addAction(Intent.ACTION_POWER_DISCONNECTED);
+            filter.addAction(START_SESSION);
 
             bReceiver = new hostReceiver();
             bManager.registerReceiver(bReceiver, filter);
@@ -251,7 +253,7 @@ public class AndroidHost extends AppCompatActivity {
 
                 // Launch the current Tutor - let the HostWbView handle the details
                 //
-                broadcast(LAUNCH_TUTOR);
+                broadcast(START_SESSION);
             }
             catch(Exception e) {
 
@@ -263,11 +265,11 @@ public class AndroidHost extends AppCompatActivity {
             Toast.makeText(this, "DEBUG: KEVINWI_DEC_27", Toast.LENGTH_SHORT).show();
 
             mUserManager.init(this);
-            mUserManager.initUser("KEVINWI_DEC_27");
+            mUserManager.initUser("GUESTBL_JAN_4");
 
             // Launch the current Tutor - let the HostWebView handle the details
             //
-            broadcast(LAUNCH_TUTOR);
+            broadcast(START_SESSION);
         }
 
     }
@@ -659,8 +661,44 @@ public class AndroidHost extends AppCompatActivity {
                     finish();
                     break;
 
+
+                case START_SESSION:
+
+                    // When user logs-in, first complete the active session first if any
+                    // instruction remains
+                    //
+                    if(mUserManager.hasMoreTutors()) {
+
+                        mUserManager.preCreateLogFolders();
+
+                        switchView(mWebView);
+                        broadcast(LAUNCH_TUTOR);
+                    }
+
+                    // Otherwise check if there are more sessions.  start them as required
+                    //
+                    else {
+                        if(mUserManager.hasMoreSessions()) {
+
+                            mUserManager.preCreateLogFolders();
+
+                            switchView(mWebView);
+                            broadcast(LAUNCH_TUTOR);
+
+                        }
+                        else {
+                            mEndView.AllComplete(); // Change the end message to something like "all done"
+                            switchView(mEndView);
+                            noMoreTutors = true;    // Enable backpress
+                        }
+                    }
+                    break;
+
+
                 case TUTOR_COMPLETE:
 
+                    // Check for more tutors within session.
+                    //
                     if(mUserManager.hasMoreTutors()) {
 
                         switchView(mWebView);
@@ -668,7 +706,7 @@ public class AndroidHost extends AppCompatActivity {
 
                     } else {
                         switchView(mEndView);
-                        noMoreTutors = true;
+                        noMoreTutors = true;    // Enable backpress
                     }
                     break;
 

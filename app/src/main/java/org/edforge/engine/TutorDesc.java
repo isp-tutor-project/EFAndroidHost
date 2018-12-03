@@ -27,7 +27,7 @@ public class TutorDesc implements ISerializableObject {
         // The features to push into the tutor instance.
         //
         jsonWriter.addElement("launcher", launcher);
-        jsonWriter.addElement("launcher", logfolder);
+        jsonWriter.addElement("logfolder", logfolder);
         jsonWriter.addElement("features", features);
     }
 
