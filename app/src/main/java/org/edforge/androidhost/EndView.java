@@ -62,8 +62,8 @@ public class EndView extends FrameLayout {
 
     public void AllComplete() {
 
-        mTitle1.setText("You're all done.");
-        mTitle2.setText("Thank You");
+        mTitle1.setText("You're done with the tablet portion of the lesson.");
+        mTitle2.setText("Please raise your hand.");
     }
 
     public void onDestroy() {

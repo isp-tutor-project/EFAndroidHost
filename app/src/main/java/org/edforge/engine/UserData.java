@@ -10,7 +10,8 @@ import org.edforge.util.JSON_Util;
 import org.json.JSONObject;
 
 /**
- * Created by kevin on 11/4/2018.
+ *  NOTE!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+ *  This must be aligned with class in EFHomeScreen
  */
 
 public class UserData implements ISerializableObject {
@@ -35,8 +36,6 @@ public class UserData implements ISerializableObject {
         currScene       = "";
         instructionSeq  = "";
         timeStamp       = System.currentTimeMillis();
-
-        Log.e(TAG, "UserData null");
     }
 
     public UserData(String _userName) {
@@ -47,11 +46,13 @@ public class UserData implements ISerializableObject {
         currScene       = "";
         instructionSeq  = "";
         timeStamp       = System.currentTimeMillis();
-
-        if(userName.equals("GUESTBL_JAN_1"))
-            Log.e(TAG, "UserData named");
     }
 
+
+    public void SetDefInstruction(String defaultInstr) {
+
+        instructionSeq = defaultInstr;
+    }
 
     public void clone(UserData userData) {
 
@@ -61,17 +62,11 @@ public class UserData implements ISerializableObject {
         currScene       = userData.currScene;
         instructionSeq  = userData.instructionSeq;
         timeStamp       = userData.timeStamp;
-
-        if(userName.equals("GUESTBL_JAN_1"))
-            Log.e(TAG, "UserData clone: " + currSessionNdx + ":" + currTutorNdx);
     }
 
 
     @Override
     public void saveJSON(JSON_Util writer) {
-
-        if(userName.equals("GUESTBL_JAN_1"))
-            Log.e(TAG, "UserData write: " + currSessionNdx + ":" + currTutorNdx);
 
         writer.addElement("userName",       userName);
         writer.addElement("currSessionNdx", currSessionNdx);
@@ -89,10 +84,6 @@ public class UserData implements ISerializableObject {
         JSON_Helper.parseSelf(jsonObj, this, CClassMap.classMap, scope);
 
         userName = userName.replace("-","_").toUpperCase();
-
-        if(userName.equals("GUESTBL_JAN_1"))
-            Log.e(TAG, "UserData load: " + currSessionNdx + ":" + currTutorNdx);
-
     }
 
 }

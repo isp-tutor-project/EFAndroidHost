@@ -42,10 +42,14 @@ public class TCONST {
     public static final String EDFORGE_DATA_TRANSFER  = "/EdForge_XFER/";
     public static final String EDFORGE_TUTOR_DATA     = "/EdForge/EFTutors/";
 
+    public static final String INSTR_CONFIG           = "tutor_instrseq_config.json";
+
     public static final String USER_DATA            = "isp_userdata.json";
 
     public static final boolean APPEND     = true;
     public static final boolean REPLACE    = false;
+
+    public static final String TTS         = "TTS";
 
     // WIFI constants
     public static final String WEP         = "WEP";
@@ -73,9 +77,7 @@ public class TCONST {
 
     public static final String EDFORGEZIPTEMP = "efztempfile.zip";
 
-    public static final String DEFAULT_TUTOR_INSTR = "tutor_seq_dayone.json";
-
-    public static final String DEBUG_USER_JSON  = "{\"userName\":\"KEVINWI_DEC_27\", \"currTutorNdx\":0, \"currScene\":\"Scene0\", \"instructionSeq\":\"tutor_seq_ted_baseline.json\"}";
+    public static final String DEBUG_USER_JSON  = "{\"userName\":\"KEVINWI_DEC_27\", \"currSessionNdx\":1, \"currTutorNdx\":0, \"currScene\":\"Scene0\", \"instructionSeq\":\"tutor_seq_choice_4day.json\"}";
     public static final String DEBUG_TUTOR_LIST = "";
 
 

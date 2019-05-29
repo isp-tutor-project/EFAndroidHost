@@ -17,9 +17,9 @@ import java.io.File;
 import java.io.FileWriter;
 
 import static org.edforge.androidhost.TCONST.DEBUG_USER_JSON;
-import static org.edforge.androidhost.TCONST.DEFAULT_TUTOR_INSTR;
 import static org.edforge.androidhost.TCONST.EDFORGE_DATA_FOLDER;
 import static org.edforge.androidhost.TCONST.EDFORGE_FOLDER;
+import static org.edforge.androidhost.TCONST.INSTR_CONFIG;
 import static org.edforge.androidhost.TCONST.LAUNCH_TUTOR;
 import static org.edforge.androidhost.TCONST.REPLACE;
 import static org.edforge.androidhost.TCONST.TUTOR_COMPLETE;
@@ -45,6 +45,11 @@ public class UserManager {
     private LocalBroadcastManager bManager;
     private userReceiver          bReceiver;
     private JSON_Util             mJsonWriter = null;
+
+    private InstructionConfig mInstructionConfig;
+    public String DEF_INSTRUCTION_SEQ = "";
+
+    public final static String  ASSET_FOLDER   = Environment.getExternalStorageDirectory() + TCONST.EDFORGE_FOLDER;
 
     private final  String  TAG = "UserManager";
 
@@ -171,10 +176,35 @@ public class UserManager {
         loadTutorDesc();
     }
 
+
+    private void loadInstructionConfig() {
+
+        // Load the user data file
+        //
+        mInstructionConfig = new InstructionConfig();
+        String jsonData  = JSON_Helper.cacheDataByName(ASSET_FOLDER + INSTR_CONFIG);
+
+        try {
+            if(!jsonData.isEmpty()) {
+                mInstructionConfig.loadJSON(new JSONObject(jsonData), null);
+
+                DEF_INSTRUCTION_SEQ = mInstructionConfig.defInstr;
+            }
+
+        } catch (Exception e) {
+
+            // TODO: Manage Exceptions
+            Log.e(TAG, "UserData Parse Error: " + e);
+        }
+    }
+
+
     public void initEmptyInstruction() {
 
+        loadInstructionConfig();
+
         if(mUserData.instructionSeq.equals("")) {
-            mUserData.instructionSeq = DEFAULT_TUTOR_INSTR;
+            mUserData.instructionSeq = DEF_INSTRUCTION_SEQ;
             updateUserPackage();
         }
     }

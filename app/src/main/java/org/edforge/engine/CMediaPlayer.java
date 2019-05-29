@@ -156,6 +156,9 @@ public class CMediaPlayer extends MediaPlayer implements MediaPlayer.OnPreparedL
                 queueMap.remove(this);
 
                 switch (_command) {
+
+                    // On completion fire the EFSoundEvent in the EFLoadManager (see the Adobe Animate linkage - ef_loadManager.js)
+                    //
                     case "complete":
                         Log.d(TAG,"LJSCR Sending Completion Event");
                         mWebView.evaluateJavascript("javascript:EFSoundEvent('complete');", null);
@@ -222,8 +225,5 @@ public class CMediaPlayer extends MediaPlayer implements MediaPlayer.OnPreparedL
 
         enQueue(new CMediaPlayer.Queue(command));
     }
-
-
-
 
 }

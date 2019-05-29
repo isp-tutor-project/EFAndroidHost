@@ -1,6 +1,8 @@
 package org.edforge.engine;
 
 import android.content.Context;
+import android.os.Handler;
+import android.os.Looper;
 import android.speech.tts.TextToSpeech;
 import android.speech.tts.TextToSpeech.OnInitListener;
 import android.speech.tts.UtteranceProgressListener;
@@ -9,40 +11,52 @@ import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.webkit.WebView;
 
+import org.edforge.androidhost.TCONST;
 import org.edforge.util.IReadyListener;
 
 import java.io.File;
+import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Set;
 
 /**
  * TODO: this should be a singleton
  * TODO: Add stop / pause / restart
  */
-public class TTSsynthesizer extends UtteranceProgressListener implements OnInitListener
+public class CNativeSpeech extends UtteranceProgressListener implements OnInitListener
 {
     private final Context context;
 
     private AppCompatActivity mOwner;
-    private WebView mWebView;
+    private WebView           mWebView;
 
-    private Locale mLocale;
-    private String mCurrentLocale = "";
+    private Locale          mLocale;
+    private String          mCurrentLocale = "";
     private float           mCurrentRate   = 0;
-    private TextToSpeech tts;
+    private TextToSpeech    tts;
     private boolean         readyToSpeak = false;
     private boolean         isSpeaking = false;
 
-    private Set mVoices;
+    private Set     mVoices;
     private Voice[] arrVoices;
 
     private IReadyListener  tutorRoot;
 
-    static final String TAG="TTSsynthesizer";
+    private final Handler   mainHandler = new Handler(Looper.getMainLooper());
+    private HashMap         queueMap    = new HashMap();
+    private boolean         mDisabled   = false;
+
+    private String          trackSSML   = "";
+    private String          trackID     = "";
+
+
+    static final String TAG="CNativeSpeech";
 
 
 
-    public TTSsynthesizer(Context baseContext, WebView webView ) {
+    public CNativeSpeech(Context baseContext, WebView webView ) {
 
         context  = baseContext;
         mWebView = webView;
@@ -74,12 +88,13 @@ public class TTSsynthesizer extends UtteranceProgressListener implements OnInitL
         if (status == TextToSpeech.SUCCESS) {
 
             readyToSpeak = true;
+            tutorRoot.onServiceReady(TCONST.TTS, "readyToSpeak");
         }
         else {
-            // TODO: Manage Flite Not Present
+
+            tutorRoot.onServiceReady(TCONST.TTS, "Init Failed");
         }
 
-        tutorRoot.onServiceReady("TTS", readyToSpeak? 1:0);
     }
 
 
@@ -112,6 +127,23 @@ public class TTSsynthesizer extends UtteranceProgressListener implements OnInitL
     public boolean isReady() {
 
         return readyToSpeak;
+    }
+
+
+    @android.webkit.JavascriptInterface
+    public void registerSpeech(String SML, String TrackID) {
+
+        trackSSML = SML;
+        trackID   = TrackID;
+    }
+
+
+    @android.webkit.JavascriptInterface
+    public void playTrack() {
+
+        Log.d(TAG, trackSSML);
+
+        speak(trackSSML, trackID);
     }
 
 
@@ -168,7 +200,7 @@ public class TTSsynthesizer extends UtteranceProgressListener implements OnInitL
 
         mVoices = tts.getVoices();
 
-        arrVoices = (Voice[])mVoices.toArray();
+    //    arrVoices = (Voice[])mVoices.toArray();
     }
 
 
@@ -230,12 +262,112 @@ public class TTSsynthesizer extends UtteranceProgressListener implements OnInitL
     @android.webkit.JavascriptInterface
     @Override
     public void onDone(String utteranceId) {
+
         isSpeaking = false;
+        post("complete");
     }
 
     @android.webkit.JavascriptInterface
     @Override
     public void onError(String utteranceId) {
+
         isSpeaking = false;
+        post("complete");
     }
+
+
+    //************************************************************************
+
+
+    /**
+     * This is the central processsing point of CSceneGraph - It is a message driven pattern
+     * on the UI thread.
+     */
+    public class Queue implements Runnable {
+
+        protected String _command;
+
+        public Queue(String command) {
+            _command = command;
+        }
+
+        @Override
+        public void run() {
+
+            try {
+                queueMap.remove(this);
+
+                switch (_command) {
+
+                    // On completion fire the EFSoundEvent in the EFLoadManager (see the Adobe Animate linkage - ef_loadManager.js)
+                    //
+                    case "complete":
+                        Log.d(TAG,"NativeSpeech Sending Completion Event");
+                        mWebView.evaluateJavascript("javascript:EFSoundEvent('complete');", null);
+                        break;
+                }
+            }
+            catch(Exception e) {
+            }
+        }
+    }
+
+
+    /**
+     *  Disable the input queue permenantly in prep for destruction
+     *  walks the queue chain to diaable scene queue
+     *
+     */
+    public void terminateQueue() {
+
+        // disable the input queue permenantly in prep for destruction
+        //
+        mDisabled = true;
+        flushQueue();
+    }
+
+
+    /**
+     * Remove any pending media commands.
+     *
+     */
+    private void flushQueue() {
+
+        Iterator<?> tObjects = queueMap.entrySet().iterator();
+
+        while(tObjects.hasNext() ) {
+            Map.Entry entry = (Map.Entry) tObjects.next();
+
+            mainHandler.removeCallbacks((CMediaPlayer.Queue)(entry.getValue()));
+        }
+
+    }
+
+    /**
+     * Keep a mapping of pending messages so we can flush the queue if we want to terminate
+     * the tutor before it finishes naturally.
+     *
+     * @param qCommand
+     */
+    private void enQueue(CNativeSpeech.Queue qCommand) {
+
+        if(!mDisabled) {
+            queueMap.put(qCommand, qCommand);
+
+            mainHandler.post(qCommand);
+        }
+    }
+
+    /**
+     * Post a command to this queue
+     *
+     * @param command
+     */
+    public void post(String command) {
+
+        enQueue(new CNativeSpeech.Queue(command));
+    }
+
+
+
 }

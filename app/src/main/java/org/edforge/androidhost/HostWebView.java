@@ -15,8 +15,9 @@ import android.webkit.WebView;
 import android.widget.FrameLayout;
 
 import org.edforge.engine.CNativeAudio;
-import org.edforge.engine.TTSsynthesizer;
+import org.edforge.engine.CNativeSpeech;
 import org.edforge.engine.UserManager;
+import org.edforge.util.IReadyListener;
 
 import java.io.File;
 
@@ -27,14 +28,14 @@ import static org.edforge.androidhost.TCONST.TUTOR_COMPLETE;
  * Created by kevin on 11/5/2018.
  */
 
-public class HostWebView extends FrameLayout {
+public class HostWebView extends FrameLayout implements IReadyListener {
 
     private Context mContext;
     private WebView webView;
 
     private UserManager             mUserManager;
     private CNativeAudio            mNativeAudio;
-    private TTSsynthesizer          mNativeSpeech;
+    private CNativeSpeech mNativeSpeech;
 
     private LocalBroadcastManager   bManager;
     private webViewReceiver         bReceiver;
@@ -163,13 +164,27 @@ public class HostWebView extends FrameLayout {
         mNativeAudio = new CNativeAudio(AndroidHost.ACTIVITY, webView);
         webView.addJavascriptInterface(mNativeAudio, "EFnativeAudio");
 
-//        // Create a javascript interface for native Speech
-//        mNativeSpeech = new TTSsynthesizer(AndroidHost.ACTIVITY, webView);
-//        webView.addJavascriptInterface(mNativeSpeech, "EFnativeSpeech");
+        // Create a javascript interface for native Speech
+        mNativeSpeech = new CNativeSpeech(AndroidHost.ACTIVITY, webView);
+        mNativeSpeech.initializeTTS(this);
+
+        webView.addJavascriptInterface(mNativeSpeech, "EFnativeSpeech");
 
         // Create a javascript interface for native audio
         webView.addJavascriptInterface(mUserManager, "EFnativeUserMgr");
 //        webView.addJavascriptInterface(mLogManager, "EFnativeLogMgr");
+    }
+
+
+    @Override
+    public void onServiceReady(String serviceName, String status) {
+
+        if(serviceName.equals(TCONST.TTS)) {
+
+            Log.i(TAG, TCONST.TTS + " reports: " + status);
+
+            mNativeSpeech.getVoices();
+        }
     }
 
 

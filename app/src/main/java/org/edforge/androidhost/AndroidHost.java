@@ -265,7 +265,7 @@ public class AndroidHost extends AppCompatActivity {
             Toast.makeText(this, "DEBUG: KEVINWI_DEC_27", Toast.LENGTH_SHORT).show();
 
             mUserManager.init(this);
-            mUserManager.initUser("GUESTBL_JAN_4");
+            mUserManager.initDebugUser();
 
             // Launch the current Tutor - let the HostWebView handle the details
             //
